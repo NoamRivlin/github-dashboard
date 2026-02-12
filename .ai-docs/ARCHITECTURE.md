@@ -4,7 +4,7 @@
 
 | Layer | Tool |
 |-------|------|
-| Framework | React 18+ (functional components, hooks only) |
+| Framework | React 18.3 (functional components, hooks only) |
 | Language | TypeScript strict, no `any` |
 | Routing | TanStack Router (file-based) |
 | Data Fetching | TanStack Query (cache + refetch) |

@@ -2,6 +2,7 @@
 
 > Pick the next `TODO` task whose dependencies are all `DONE`.
 > Each task = one focused unit of work. Update `PROGRESS.md` after each.
+> **Commit after every subtask.** Big changes/refactors → commit BEFORE and AFTER.
 
 ---
 
