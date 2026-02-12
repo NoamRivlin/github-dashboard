@@ -6,12 +6,12 @@
 
 | Phase | Status | Done |
 |-------|--------|------|
-| 0: Scaffold | 🟡 In Progress | 5/6 |
+| 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ⬜ Not Started | 0/8 |
 | 2: UI Pages | ⬜ Not Started | 0/9 |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** 0.6 — QA verify (pending)
+**Current task:** Phase 0 complete — ready for Phase 1
 **Blockers:** None
 
 ---
@@ -22,7 +22,7 @@
 - [x] 0.3 — Dark theme | Blue-tinted dark theme CSS vars from ARCHITECTURE.md, class="dark" on html
 - [x] 0.4 — Router setup | File-based routes: __root.tsx, index.tsx (redirect → /repositories), repositories.tsx, developers.tsx. TanStack Router plugin in vite.config.ts. Route tree auto-generated.
 - [x] 0.5 — Root layout | __root.tsx has Navbar shell (sticky header, "Github Explorer" title) + Outlet. main.tsx wraps app with QueryClientProvider + RouterProvider. Type-safe router registration.
-- [ ] 0.6 — QA verify | **Next: run dev server, Playwright verify both routes, zero console errors**
+- [x] 0.6 — QA verify | Playwright: dark theme OK, navbar OK, /repositories renders, /developers renders, redirect from / works, zero console errors
 
 ## Phase 1: API Layer
 - [ ] 1.1 — TS interfaces |
@@ -57,7 +57,16 @@
 ---
 
 ## QA Reports
-<!-- Added by QA role after Playwright testing -->
+
+### Task 0.6 — Scaffold QA
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Dark theme | ✅ | Blue-tinted dark background, white text |
+| Navbar | ✅ | Sticky header, "Github Explorer" title |
+| / redirect | ✅ | Redirects to /repositories |
+| /repositories | ✅ | Renders heading |
+| /developers | ✅ | Renders heading |
+| Console errors | ✅ | Zero errors (only React DevTools info msg) |
 
 ---
 
