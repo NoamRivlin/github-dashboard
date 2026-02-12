@@ -66,7 +66,8 @@ src/
 - ALL server data through query hooks — components never call API directly
 - ALL types in `types/github.ts` — no inline type definitions
 - Pages are thin — compose components + wire hooks
-- Developers page derives data from the repos query (no extra API call)
+- Both pages share the same `useRepositories()` query (TanStack Query deduplicates via queryKey — one API call serves both)
+- Developers page derives Developer[] by mapping each repo to its owner
 
 ## Naming
 
@@ -133,7 +134,7 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 **ContributorsModal:** shadcn Dialog. Avatar `rounded-full w-8 h-8`, list items `flex items-center gap-3 py-2 border-b border-border/50`.
 
-**DeveloperCard:** shadcn Card, `w-[360px]` fixed for horizontal scroll (same pattern as RepositoryCard). Layout top-to-bottom: developer name (bold), "Repository He Made – stars amount" sub-line, large avatar `rounded-full w-24 h-24 mx-auto` in bottom portion. Hover: `border-primary/50`. Used inside `HorizontalScroll` container on Developers page.
+**DeveloperCard:** shadcn Card, `w-[360px]` fixed for horizontal scroll (same pattern as RepositoryCard). Data derived from Repository (owner = developer). Shows: developer name (`owner.login`, bold), their top repo name + stars sub-line (`repo.name – stargazers_count`), large avatar (`owner.avatar_url`, `rounded-full w-24 h-24 mx-auto`) in bottom portion. Hover: `border-primary/50`. Used inside `HorizontalScroll` container on Developers page.
 
 **StatusOverlay:** Loading → skeleton cards. Error → `AlertCircle` + retry. Rate-limited → amber banner "Using cached data". Empty → friendly message.
 

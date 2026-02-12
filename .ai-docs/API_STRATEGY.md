@@ -5,9 +5,15 @@
 | Endpoint | Purpose | Refetch |
 |----------|---------|---------|
 | `GET /search/repositories?q=language:javascript&sort=stars&order=desc&per_page=10` | Top 10 JS repos | 10s interval |
-| `GET /repos/{owner}/{repo}/contributors` | Repo contributors | On-demand (modal open) |
+| `GET /repos/{owner}/{repo}/contributors?per_page=10` | Repo contributors (modal, 10 per page) | On-demand (modal open) |
 
-**Developers page uses NO separate endpoint** — derived from repo owner data.
+**Developers page** — derived from the same top 10 JS repos query (no separate endpoint). Both pages share the same TanStack Query cache via `queryKey: ['repositories']`, so only one API call is made:
+- `owner.login` → developer name
+- `name` → repo name
+- `stargazers_count` → stars in that repo
+- `owner.avatar_url` → developer profile image
+- Same developer may appear more than once if they own multiple top repos
+- List is ordered by stars (desc), matching the API response order
 
 ---
 
@@ -49,6 +55,15 @@ interface Contributor {
   login: string;
   avatar_url: string;
   contributions: number;
+}
+
+// Derived from the same top 10 JS repos query — NOT a separate API call
+// Each repo maps to one developer entry (same owner can appear multiple times)
+interface Developer {
+  login: string;        // owner.login
+  avatar_url: string;   // owner.avatar_url
+  repoName: string;     // repo.name
+  repoStars: number;    // repo.stargazers_count
 }
 ```
 
@@ -113,8 +128,8 @@ apiClient.interceptors.response.use(
 **Contributors** (on-demand):
 ```ts
 {
-  queryKey: ['contributors', owner, repo],
-  queryFn: () => fetchContributors(owner, repo),
+  queryKey: ['contributors', repoFullName],
+  queryFn: () => fetchContributors(repoFullName),
   enabled,                              // Only when modal is open
   staleTime: 5 * 60 * 1000,
   gcTime: 10 * 60 * 1000,

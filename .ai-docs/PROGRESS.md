@@ -7,11 +7,11 @@
 | Phase | Status | Done |
 |-------|--------|------|
 | 0: Scaffold | ✅ Complete | 6/6 |
-| 1: API Layer | ⬜ Not Started | 0/8 |
+| 1: API Layer | ✅ Complete | 8/8 |
 | 2: UI Pages | ⬜ Not Started | 0/9 |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** Phase 0 complete — ready for Phase 1
+**Current task:** Phase 1 complete — ready for Phase 2
 **Blockers:** None
 
 ---
@@ -25,14 +25,14 @@
 - [x] 0.6 — QA verify | Playwright: dark theme OK, navbar OK, /repositories renders, /developers renders, redirect from / works, zero console errors
 
 ## Phase 1: API Layer
-- [ ] 1.1 — TS interfaces |
-- [ ] 1.2 — Axios instance |
-- [ ] 1.3 — API validation |
-- [ ] 1.4 — Mock data |
-- [ ] 1.5 — Service functions |
-- [ ] 1.6 — Query hooks |
-- [ ] 1.7 — Rate-limit handling |
-- [ ] 1.8 — Timestamp hook |
+- [x] 1.1 — TS interfaces | Repository, RepositorySearchResponse, Contributor, Developer in types/github.ts
+- [x] 1.2 — Axios instance | api/client.ts with baseURL, Accept header, RateLimitError class, 403 interceptor
+- [x] 1.3 — API validation | Validated real GitHub API shapes via curl, confirmed license can be null
+- [x] 1.4 — Mock data | api/mocks/repositories.ts (10 JS repos), api/mocks/contributors.ts (10 contributors), toggle via VITE_USE_MOCKS
+- [x] 1.5 — Service functions | fetchRepositories() (JS repos, per_page=10), fetchContributors(repoFullName, per_page=10)
+- [x] 1.6 — Query hooks | useRepositories (10s refetch, keepPreviousData, rate-limit retry), useContributors (on-demand, enabled flag)
+- [x] 1.7 — Rate-limit handling | RateLimitError class, no retry on rate-limit, gcTime keeps stale data
+- [x] 1.8 — Timestamp hook | useQueryTimestamp reads dataUpdatedAt. All 3 endpoints verified manually via test buttons (repos, developers, contributors)
 
 ## Phase 2: UI Pages
 - [ ] 2.1 — Navbar |
@@ -68,6 +68,14 @@
 | /developers | ✅ | Renders heading |
 | Console errors | ✅ | Zero errors (only React DevTools info msg) |
 
+### Task 1.8 — API Verification
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Repositories fetch | ✅ | Top 10 JS repos logged, sorted by stars desc |
+| Developers derivation | ✅ | 10 developers derived from repo owners, same query (TanStack Query dedup) |
+| Contributors fetch | ✅ | On-demand fetch for ryanmcdermott/clean-code-javascript, contributors logged |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
 ---
 
 ## Deviations Log
@@ -94,11 +102,25 @@ Tasks: X.X–X.X
 ```
 Files changed:
 
-### Phase 1 Commit — ⬜ Pending
+### Phase 1 Commit — ✅
 ```
-<!-- filled after phase 1 -->
+feat(api): implement API layer with types, hooks, mocks, and rate-limit handling
 ```
 Files changed:
+- `src/types/github.ts` — Repository, RepositorySearchResponse, Contributor, Developer interfaces
+- `src/api/client.ts` — Axios instance, RateLimitError class, 403 interceptor
+- `src/api/github.ts` — fetchRepositories (JS repos), fetchContributors (per_page=10)
+- `src/api/mocks/repositories.ts` — 10 realistic mock JS repos
+- `src/api/mocks/contributors.ts` — 10 realistic mock contributors
+- `src/api/mocks/index.ts` — VITE_USE_MOCKS toggle
+- `src/hooks/queries/useRepositories.ts` — 10s refetch, keepPreviousData, rate-limit retry
+- `src/hooks/queries/useContributors.ts` — on-demand, enabled flag
+- `src/hooks/queries/useQueryTimestamp.ts` — reads dataUpdatedAt for navbar
+- `src/routes/repositories.tsx` — temp test buttons (repos + contributors)
+- `src/routes/developers.tsx` — temp test button (developers derived from repos)
+- `.ai-docs/API_STRATEGY.md` — updated endpoints, contributor per_page, developer derivation
+- `.ai-docs/ARCHITECTURE.md` — clarified shared query pattern
+- `.ai-docs/TASKS.md` — updated task 2.7 description
 
 ### Phase 2 Commit — ⬜ Pending
 ```

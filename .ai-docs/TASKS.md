@@ -47,8 +47,8 @@
 | 2.3 | HorizontalScroll | Implementer+Designer | — | `overflow-x-auto`, snap scroll, thin custom scrollbar, no animations |
 | 2.4 | Repositories page | Implementer | 2.1–2.3 | Compose: useRepositories → HorizontalScroll → RepositoryCard[]. Loading skeletons |
 | 2.5 | ContributorsModal | Implementer+Designer | 2.4 | shadcn Dialog, useContributors (enabled on open). Avatars, names, contribution count. **Context7:** verify Dialog API |
-| 2.6 | DeveloperCard | Implementer+Designer | 1.6 | `w-[360px]` fixed-width card for horizontal scroll. Top: developer name (bold), sub-line: repo name – stars. Bottom: large avatar (`w-24 h-24`). Matches mockup layout |
-| 2.7 | Developers page | Implementer | 2.1, 2.6 | Derive developers from useRepositories (owner = developer). HorizontalScroll layout (same pattern as Repositories page, per mockup) |
+| 2.6 | DeveloperCard | Implementer+Designer | 1.6 | `w-[360px]` fixed-width card. Shows: developer name (`owner.login`, bold), their top repo name + stars sub-line, large avatar (`owner.avatar_url`, `w-24 h-24`). Data from `Developer` type (derived from Repository) |
+| 2.7 | Developers page | Implementer | 2.1, 2.6 | Uses same `useRepositories()` query (TanStack Query dedup). Maps each repo to a Developer card (`owner.login`, `owner.avatar_url`, `repo.name`, `repo.stargazers_count`). Same owner may appear multiple times. Ordered by stars desc. HorizontalScroll layout (per mockup) |
 | 2.8 | StatusOverlay | Implementer+Designer | 2.4, 2.7 | Shared: loading (skeletons), error (icon + retry), rate-limited (amber banner), empty. Used by both pages |
 | 2.9 | Visual verification | QA | 2.8 | **Playwright:** both pages, modal, scroll, timestamps, console check |
 
