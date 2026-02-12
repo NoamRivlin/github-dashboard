@@ -42,15 +42,15 @@
 
 | # | Task | Role | Deps | Key Details |
 |---|------|------|------|-------------|
-| 2.1 | Navbar | Implementer+Designer | 1.8 | TanStack Router `<Link>`, active state, UpdatedAtBadge, rate-limit indicator. See design system |
-| 2.2 | RepositoryCard | Implementer+Designer | 1.6 | All fields: name (link), stars, desc, license (null-safe), forks, issues, "View Contributors" btn. Lucide icons |
-| 2.3 | HorizontalScroll | Implementer+Designer | — | `overflow-x-auto`, snap scroll, thin custom scrollbar, no animations |
-| 2.4 | Repositories page | Implementer | 2.1–2.3 | Compose: useRepositories → HorizontalScroll → RepositoryCard[]. Loading skeletons |
-| 2.5 | ContributorsModal | Implementer+Designer | 2.4 | shadcn Dialog, useContributors (enabled on open). Avatars, names, contribution count. **Context7:** verify Dialog API |
-| 2.6 | DeveloperCard | Implementer+Designer | 1.6 | `w-[360px]` fixed-width card. Shows: developer name (`owner.login`, bold), their top repo name + stars sub-line, large avatar (`owner.avatar_url`, `w-24 h-24`). Data from `Developer` type (derived from Repository) |
-| 2.7 | Developers page | Implementer | 2.1, 2.6 | Uses same `useRepositories()` query (TanStack Query dedup). Maps each repo to a Developer card (`owner.login`, `owner.avatar_url`, `repo.name`, `repo.stargazers_count`). Same owner may appear multiple times. Ordered by stars desc. HorizontalScroll layout (per mockup) |
-| 2.8 | StatusOverlay | Implementer+Designer | 2.4, 2.7 | Shared: loading (skeletons), error (icon + retry), rate-limited (amber banner), empty. Used by both pages |
-| 2.9 | Visual verification | QA | 2.8 | **Playwright:** both pages, modal, scroll, timestamps, console check |
+| 2.1 | Navbar | ✅ Done | 1.8 | Grid-cols-3: Code2+title+UpdatedAtBadge(24H) left, Router Links centered (activeProps), empty right. Rate-limit amber AlertTriangle. |
+| 2.2 | RepositoryCard | ✅ Done | 1.6 | w-[400px], truncated name+link, stars, line-clamp-3 desc, license/forks/issues, View Contributors btn at bottom (flex-1). Hover border-primary/50 |
+| 2.3 | HorizontalScroll | ✅ Done | — | overflow-x-auto, snap scroll, items-stretch, thin dark scrollbar (bg-muted/muted-foreground) |
+| 2.4 | Repositories page | ✅ Done | 2.1–2.3 | StatusOverlay + HorizontalScroll + RepositoryCards + ContributorsModal. Vertically centered. |
+| 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count |
+| 2.6 | DeveloperCard | ✅ Done | 1.6 | w-[400px], truncated login+repo, stars, large centered avatar (w-24 h-24). flex-1 for consistent height |
+| 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered |
+| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Loading: 5 skeleton cards. Error: AlertCircle+retry. Rate-limited: amber banner. Empty: message. Shared. |
+| 2.9 | Visual verification | ⬜ Pending | 2.8 | Playwright blocked (Chrome conflict). Config updated to Chromium. Manual check done. |
 
 → **COMMIT → STOP → REVIEW**
 

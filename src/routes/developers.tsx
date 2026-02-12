@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useRepositories } from "@/hooks/queries/useRepositories"
+import { RateLimitError } from "@/api/client"
+import { HorizontalScroll } from "@/components/HorizontalScroll"
+import { DeveloperCard } from "@/components/DeveloperCard"
+import { StatusOverlay } from "@/components/StatusOverlay"
 import type { Developer } from "@/types/github"
 
 export const Route = createFileRoute("/developers")({
@@ -7,7 +11,8 @@ export const Route = createFileRoute("/developers")({
 })
 
 function DevelopersPage() {
-  const { data, isLoading, isError } = useRepositories()
+  const { data, isLoading, isError, error, refetch } = useRepositories()
+  const isRateLimited = error instanceof RateLimitError
 
   const developers: Developer[] =
     data?.items.map((repo) => ({
@@ -18,30 +23,22 @@ function DevelopersPage() {
     })) ?? []
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Developers</h1>
-      <p className="text-sm text-muted-foreground mt-2">
-        Status:{" "}
-        {isLoading
-          ? "Loading..."
-          : isError
-            ? "Error"
-            : `${developers.length} developers`}
-      </p>
-      <button
-        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
-        onClick={() => {
-          console.log("=== DEVELOPERS (owners of top JS repos) ===")
-          developers.forEach((dev, i) => {
-            console.log(
-              `${i + 1}. ${dev.login} — ${dev.repoName} ★${dev.repoStars}`,
-            )
-          })
-          console.log("Full data:", developers)
-        }}
-      >
-        Log Developers to Console
-      </button>
+    <div className="flex min-h-[calc(100vh-8rem)] flex-col justify-center space-y-4">
+      <StatusOverlay
+        isLoading={isLoading}
+        isError={isError && !isRateLimited}
+        isRateLimited={isRateLimited}
+        isEmpty={!isLoading && !isError && developers.length === 0}
+        onRetry={() => refetch()}
+      />
+
+      {developers.length > 0 && (
+        <HorizontalScroll>
+          {developers.map((dev, index) => (
+            <DeveloperCard key={`${dev.login}-${index}`} developer={dev} />
+          ))}
+        </HorizontalScroll>
+      )}
     </div>
   )
 }

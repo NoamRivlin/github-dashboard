@@ -13,7 +13,7 @@
 - `stargazers_count` → stars in that repo
 - `owner.avatar_url` → developer profile image
 - Same developer may appear more than once if they own multiple top repos
-- List is ordered by stars (desc), matching the API response order
+- List is ordered by stars (desc), with client-side sort in `fetchRepositories()` for stable ordering across refetches
 
 ---
 
@@ -139,7 +139,7 @@ apiClient.interceptors.response.use(
 
 ### Key Decisions
 - **Single repos query shared** between Repositories page and Developers page (zero extra calls)
-- **Contributors cached per repo** — same modal opened twice doesn't re-fetch within staleTime
+- **Contributors cached per repo** — same modal opened twice doesn't re-fetch within staleTime. `isPlaceholderData` used in UI to show loading skeletons instead of stale data from a different repo
 - **refetchInterval is global** — doesn't reset on navigation between pages
 - **Minimize calls:** 1 polled endpoint + on-demand contributors only
 

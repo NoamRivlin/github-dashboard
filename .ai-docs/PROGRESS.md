@@ -8,11 +8,11 @@
 |-------|--------|------|
 | 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ✅ Complete | 8/8 |
-| 2: UI Pages | ⬜ Not Started | 0/9 |
+| 2: UI Pages | 🔶 In Progress | 8/9 (2.9 pending — Playwright blocked by Chrome conflict) |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** Phase 1 complete — ready for Phase 2
-**Blockers:** None
+**Current task:** Phase 2 components built (2.1–2.8), UI refinements applied. User wants more UI changes before 2.9 QA.
+**Blockers:** Playwright MCP can't launch while system Chrome is open. Config updated to use bundled Chromium (`--browser chromium` in `.mcp.json`) but needs session restart.
 
 ---
 
@@ -35,15 +35,15 @@
 - [x] 1.8 — Timestamp hook | useQueryTimestamp reads dataUpdatedAt. All 3 endpoints verified manually via test buttons (repos, developers, contributors)
 
 ## Phase 2: UI Pages
-- [ ] 2.1 — Navbar |
-- [ ] 2.2 — RepositoryCard |
-- [ ] 2.3 — HorizontalScroll |
-- [ ] 2.4 — Repositories page |
-- [ ] 2.5 — ContributorsModal |
-- [ ] 2.6 — DeveloperCard |
-- [ ] 2.7 — Developers page |
-- [ ] 2.8 — StatusOverlay |
-- [ ] 2.9 — Visual QA |
+- [x] 2.1 — Navbar | Grid layout: Code2 icon + "Github Explorer" + UpdatedAtBadge (24H) on left, TanStack Router Links centered (activeProps border + text-primary), empty right col. Rate-limit amber AlertTriangle.
+- [x] 2.2 — RepositoryCard | w-[400px] card with truncated name (link + ExternalLink icon), stars (yellow), line-clamp-3 description with title tooltip, license/forks/issues row, "View Contributors" outline button at bottom via flex-1 on CardContent.
+- [x] 2.3 — HorizontalScroll | overflow-x-auto, scroll-snap-type x mandatory, items-stretch for equal card heights, thin dark custom scrollbar (bg-muted track, bg-muted-foreground/30 thumb).
+- [x] 2.4 — Repositories page | Composes StatusOverlay + HorizontalScroll + RepositoryCard[] + ContributorsModal. Vertically centered via min-h-[calc(100vh-8rem)] flex justify-center.
+- [x] 2.5 — ContributorsModal | shadcn Dialog, controlled open via repoFullName state. Uses isPlaceholderData to show loading skeletons when switching repos (prevents stale data flicker). Dark scrollbar. Contributor avatars, truncated names, green contribution count.
+- [x] 2.6 — DeveloperCard | w-[400px] card, truncated login + repo name + stars, large centered avatar (w-24 h-24 rounded-full). flex-1 on content for consistent height.
+- [x] 2.7 — Developers page | Derives Developer[] from useRepositories (TanStack Query dedup). HorizontalScroll layout. Vertically centered.
+- [x] 2.8 — StatusOverlay | Loading: 5 skeleton cards (w-[400px]). Error: AlertCircle + retry button. Rate-limited: amber banner. Empty: friendly message. Shared by both pages.
+- [ ] 2.9 — Visual QA | **Blocked:** Playwright can't launch (Chrome conflict). Config updated to Chromium, awaiting session restart. Manual visual check done by user.
 
 ## Phase 3: Polish & QA
 - [ ] 3.1 — Code review |
@@ -76,12 +76,26 @@
 | Contributors fetch | ✅ | On-demand fetch for ryanmcdermott/clean-code-javascript, contributors logged |
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 
+### Phase 2 — Manual Visual Check (user verified at localhost:5173)
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Navbar layout | ✅ | Title + timestamp left, links centered, active state works |
+| Repository cards | ✅ | 10 cards render, all fields shown, horizontal scroll works |
+| Contributors modal | ✅ | Opens per repo, loading skeletons on switch, dark scrollbar, caches per repo |
+| Developers page | ✅ | Cards render with avatar, name, repo+stars |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+| UI polish needed | ⚠️ | User wants further adjustments to card sizing, layout, etc. |
+
 ---
 
 ## Deviations Log
 | Task | Deviation | Reason |
 |------|-----------|--------|
 | 2.6, 2.7 | DeveloperCard uses HorizontalScroll instead of Grid | Mockup shows horizontal scroll for both pages |
+| 2.1 | Navbar uses grid-cols-3 with title+timestamp on left (not UpdatedAt on right) | Matches mockup layout more closely |
+| 2.2, 2.6 | Cards w-[400px] instead of w-[360px] | User feedback: cards should be bigger |
+| 2.5 | ContributorsModal uses isPlaceholderData for loading state | Prevents flicker when switching repos while keeping per-repo cache |
+| 1.5 | fetchRepositories sorts client-side by stargazers_count | Prevents jarring reorder on 10s refetch |
 
 ---
 
@@ -122,11 +136,26 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — clarified shared query pattern
 - `.ai-docs/TASKS.md` — updated task 2.7 description
 
-### Phase 2 Commit — ⬜ Pending
+### Phase 2 Commit — 🔶 In Progress
 ```
-<!-- filled after phase 2 -->
+feat(ui): implement Phase 2 UI pages — navbar, cards, scroll, modal, status overlay
 ```
 Files changed:
+- `src/components/Navbar.tsx` — grid layout, Router Links, UpdatedAtBadge, rate-limit indicator
+- `src/components/UpdatedAtBadge.tsx` — 24H timestamp, Clock icon, amber AlertTriangle
+- `src/components/RepositoryCard.tsx` — w-[400px], truncation, all fields, View Contributors button
+- `src/components/HorizontalScroll.tsx` — overflow-x-auto, snap, items-stretch, dark scrollbar
+- `src/components/ContributorsModal.tsx` — shadcn Dialog, isPlaceholderData loading, dark scrollbar
+- `src/components/DeveloperCard.tsx` — w-[400px], avatar, name, repo+stars
+- `src/components/StatusOverlay.tsx` — loading skeletons, error+retry, rate-limit banner, empty
+- `src/routes/__root.tsx` — uses Navbar component
+- `src/routes/repositories.tsx` — composed page with cards, scroll, modal, vertical centering
+- `src/routes/developers.tsx` — composed page with dev cards, scroll, vertical centering
+- `src/hooks/queries/useQueryTimestamp.ts` — 24H format (en-GB, hour12: false)
+- `src/api/github.ts` — client-side sort by stargazers_count for stable ordering
+- `.ai-docs/PROGRESS.md` — updated Phase 2 tasks
+- `.ai-docs/ARCHITECTURE.md` — updated card widths, navbar layout, modal behavior
+- `.ai-docs/TASKS.md` — updated task details
 
 ### Phase 3 Commit — ⬜ Pending
 ```

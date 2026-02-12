@@ -126,17 +126,17 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 ### Component Specs
 
-**Navbar:** Fixed top, `bg-background/80 backdrop-blur-sm border-b border-border`, h-14. Logo/title left, nav links center, UpdatedAt right. Active link: `text-primary`. Rate-limit: amber dot near timestamp.
+**Navbar:** Fixed top, `bg-background/80 backdrop-blur-sm border-b border-border`, h-14. Uses `grid-cols-3`: left = Code2 icon + "Github Explorer" title + UpdatedAtBadge (24H, Clock icon), center = TanStack Router Links with `activeProps` (border + text-primary), right = empty spacer. Rate-limit: amber AlertTriangle icon next to timestamp.
 
-**RepositoryCard:** shadcn Card, `w-[360px]` fixed for scroll. Shows: name (link), stars, description (2-3 line clamp), license (handle null), forks, issues, "View Contributors" button (`variant="outline"`). Hover: `border-primary/50`.
+**RepositoryCard:** shadcn Card, `w-[400px]` fixed for scroll. Shows: truncated name (link + ExternalLink icon, title tooltip on hover), stars (yellow), description (line-clamp-3 with title tooltip), license (null-safe), forks, issues. "View Contributors" button (`variant="outline"`) always at bottom via `flex-1` on CardContent. Hover: `border-primary/50`.
 
-**HorizontalScroll:** `overflow-x-auto`, `scroll-snap-type: x mandatory`, `gap-4`. Thin custom scrollbar. No scroll animations.
+**HorizontalScroll:** `overflow-x-auto`, `scroll-snap-type: x mandatory`, `items-stretch` (equal card heights), `gap-4`. Thin dark custom scrollbar (`bg-muted` track, `bg-muted-foreground/30` thumb). No scroll animations.
 
-**ContributorsModal:** shadcn Dialog. Avatar `rounded-full w-8 h-8`, list items `flex items-center gap-3 py-2 border-b border-border/50`.
+**ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
 
-**DeveloperCard:** shadcn Card, `w-[360px]` fixed for horizontal scroll (same pattern as RepositoryCard). Data derived from Repository (owner = developer). Shows: developer name (`owner.login`, bold), their top repo name + stars sub-line (`repo.name – stargazers_count`), large avatar (`owner.avatar_url`, `rounded-full w-24 h-24 mx-auto`) in bottom portion. Hover: `border-primary/50`. Used inside `HorizontalScroll` container on Developers page.
+**DeveloperCard:** shadcn Card, `w-[400px]` fixed for horizontal scroll (same pattern as RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold), truncated repo name + stars sub-line, large avatar (`owner.avatar_url`, `rounded-full w-24 h-24`) centered via flex. `flex-1` on content for consistent height. Hover: `border-primary/50`.
 
-**StatusOverlay:** Loading → skeleton cards. Error → `AlertCircle` + retry. Rate-limited → amber banner "Using cached data". Empty → friendly message.
+**StatusOverlay:** Loading → 5 skeleton cards (w-[400px]). Error → `AlertCircle` + retry button. Rate-limited → amber banner "Using cached data". Empty → friendly message. Shared by both pages.
 
 ### Icons (Lucide React)
 
