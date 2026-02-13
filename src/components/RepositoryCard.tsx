@@ -10,7 +10,6 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
 } from "@/components/ui/card"
@@ -27,43 +26,44 @@ export function RepositoryCard({
   onViewContributors,
 }: RepositoryCardProps) {
   return (
-    <Card className="w-[400px] shrink-0 snap-start transition-colors hover:border-primary/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
+    <Card className="w-[85vw] shrink-0 snap-start transition-colors hover:border-primary/50 sm:w-[350px] lg:w-[420px] xl:w-[480px]">
+      <CardHeader className="min-w-0 overflow-hidden">
+        <CardTitle className="flex min-w-0 flex-col gap-1 overflow-hidden text-lg sm:flex-row sm:items-center sm:gap-2">
           <a
             href={repository.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 truncate text-primary hover:underline"
+            className="flex min-w-0 items-center gap-1.5 overflow-hidden text-primary hover:underline"
             title={repository.name}
           >
-            <span className="truncate">{repository.name}</span>
+            <span className="min-w-0 truncate">{repository.name}</span>
             <ExternalLink className="h-3.5 w-3.5 shrink-0" />
           </a>
-          <span className="ml-auto flex shrink-0 items-center gap-1 text-sm font-normal text-yellow-500">
-            <Star className="h-4 w-4" />
+          <span className="flex shrink-0 items-center gap-1 text-sm font-normal text-yellow-500 sm:ml-auto">
+            <Star className="h-4 w-4" fill="currentColor" />
             {repository.stargazers_count.toLocaleString()}
           </span>
         </CardTitle>
-        <CardDescription className="line-clamp-3" title={repository.description ?? undefined}>
-          {repository.description ?? "No description"}
-        </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-1">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Scale className="h-4 w-4" />
+      <CardContent className="flex-1 space-y-3">
+        <p className="line-clamp-3 pb-5" title={repository.description ?? undefined}>
+          {repository.description ?? "No description"}
+        </p>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <Scale className="h-4 w-4 shrink-0" />
             {repository.license?.name ?? "No license"}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <GitFork className="h-4 w-4" />
-            {repository.forks_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <CircleDot className="h-4 w-4" />
-            {repository.open_issues_count.toLocaleString()}
-          </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <GitFork className="h-4 w-4 shrink-0" />
+            {repository.forks_count.toLocaleString()} forks
+          </div>
+          <div className="flex items-center gap-2">
+            <CircleDot className="h-4 w-4 shrink-0" />
+            {repository.open_issues_count.toLocaleString()} open issues
+          </div>
         </div>
       </CardContent>
 

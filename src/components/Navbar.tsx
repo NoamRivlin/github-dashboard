@@ -11,8 +11,8 @@ export function Navbar() {
   const isRateLimited = error instanceof RateLimitError
 
   return (
-    <nav className="grid h-full w-full grid-cols-3 items-center">
-      <div className="flex items-center gap-3">
+    <nav className="flex flex-col items-center gap-2 md:grid md:grid-cols-3 md:items-center">
+      <div className="flex items-center gap-3 pb-2">
         <Code2 className="h-5 w-5 text-primary" />
         <span className="text-lg font-semibold">Github Explorer</span>
         <UpdatedAtBadge timestamp={timestamp} isRateLimited={isRateLimited} />
@@ -41,7 +41,7 @@ export function Navbar() {
         </Link>
       </div>
 
-      <div />
+      <div className="hidden md:block" />
     </nav>
   )
 }
