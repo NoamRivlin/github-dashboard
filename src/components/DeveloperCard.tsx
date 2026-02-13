@@ -8,15 +8,15 @@ interface DeveloperCardProps {
 
 export function DeveloperCard({ developer }: DeveloperCardProps) {
   return (
-    <Card className="w-[400px] shrink-0 snap-start transition-colors hover:border-primary/50">
-      <CardHeader>
-        <CardTitle className="truncate text-lg font-bold" title={developer.login}>
+    <Card className="w-[85vw] shrink-0 snap-start transition-colors hover:border-primary/50 sm:w-[350px] lg:w-[420px] xl:w-[480px]">
+      <CardHeader className="min-w-0 overflow-hidden">
+        <CardTitle className="min-w-0 truncate text-lg font-bold" title={developer.login}>
           {developer.login}
         </CardTitle>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <span className="truncate" title={developer.repoName}>{developer.repoName}</span>
+        <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <span className="min-w-0 truncate" title={developer.repoName}>{developer.repoName}</span>
           <span className="flex shrink-0 items-center gap-1 text-yellow-500">
-            <Star className="h-3.5 w-3.5" />
+            <Star className="h-3.5 w-3.5" fill="currentColor" />
             {developer.repoStars.toLocaleString()}
           </span>
         </div>

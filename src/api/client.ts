@@ -15,14 +15,18 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (
-      error.response?.status === 403 &&
-      error.response.headers["x-ratelimit-remaining"] === "0"
-    ) {
+    const status = error.response?.status
+    const message = error.response?.data?.message ?? ""
+    const rateLimitRemaining = error.response?.headers?.["x-ratelimit-remaining"]
+
+    const isRateLimited =
+      status === 403 &&
+      (message.toLowerCase().includes("rate limit") || rateLimitRemaining?.toString() === "0")
+
+    if (isRateLimited) {
       throw new RateLimitError()
     }
     throw error
   },
 )
-
 export default apiClient
