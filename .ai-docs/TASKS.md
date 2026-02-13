@@ -42,15 +42,15 @@
 
 | # | Task | Role | Deps | Key Details |
 |---|------|------|------|-------------|
-| 2.1 | Navbar | ✅ Done | 1.8 | Grid-cols-3: Code2+title+UpdatedAtBadge(24H) left, Router Links centered (activeProps), empty right. Rate-limit amber AlertTriangle. |
-| 2.2 | RepositoryCard | ✅ Done | 1.6 | w-[400px], truncated name+link, stars, line-clamp-3 desc, license/forks/issues, View Contributors btn at bottom (flex-1). Hover border-primary/50 |
-| 2.3 | HorizontalScroll | ✅ Done | — | overflow-x-auto, snap scroll, items-stretch, thin dark scrollbar (bg-muted/muted-foreground) |
-| 2.4 | Repositories page | ✅ Done | 2.1–2.3 | StatusOverlay + HorizontalScroll + RepositoryCards + ContributorsModal. Vertically centered. |
+| 2.1 | Navbar | ✅ Done | 1.8 | flex-col centered on mobile, grid-cols-3 on md+. Title+Code2+UpdatedAtBadge left, Links centered. isError badge (generic). |
+| 2.2 | RepositoryCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), stacked detail rows, name+stars flex-col→sm:flex-row, min-w-0 truncation. Hover border-primary/50 |
+| 2.3 | HorizontalScroll | ✅ Done | — | overflow-x-auto, snap scroll, items-stretch, thin dark scrollbar, inner px-6 alignment |
+| 2.4 | Repositories page | ✅ Done | 2.1–2.3 | StatusOverlay (hasData) + HorizontalScroll + RepositoryCards + ContributorsModal. Vertically centered. |
 | 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count |
-| 2.6 | DeveloperCard | ✅ Done | 1.6 | w-[400px], truncated login+repo, stars, large centered avatar (w-24 h-24). flex-1 for consistent height |
-| 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered |
-| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Loading: 5 skeleton cards. Error: AlertCircle+retry. Rate-limited: amber banner. Empty: message. Shared. |
-| 2.9 | Visual verification | ⬜ Pending | 2.8 | Playwright blocked (Chrome conflict). Config updated to Chromium. Manual check done. |
+| 2.6 | DeveloperCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), min-w-0 overflow-hidden on CardHeader, truncated login+repo. Large centered avatar. |
+| 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered, hasData prop |
+| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Responsive skeleton widths, hasData-aware rate-limit messaging, always-visible Retry, proper padding on all states. Shared. |
+| 2.9 | Visual verification | ✅ Done | 2.8 | Playwright verified at 1440/375/287/241px. Responsive layout, truncation, error states all correct. |
 
 → **COMMIT → STOP → REVIEW**
 

@@ -119,24 +119,26 @@ src/
 System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titles: `text-lg font-semibold`. Body: `text-sm`. Meta: `text-xs text-muted-foreground`.
 
 ### Layout Rules
-- Max width: `max-w-7xl mx-auto`, page padding: `px-6 py-6`
+- Header: `sticky top-0`, `px-6 py-3`, `bg-background/80 backdrop-blur-sm border-b`
+- Main: no max-width constraint (cards extend edge-to-edge), `py-6`
+- HorizontalScroll inner container: `px-6` for alignment with navbar
 - **No animations** — no scroll animations, parallax, transitions, auto-scroll
 - Subtle hover only: opacity/border changes on cards and buttons
 - Dark mode only (no theme toggle)
 
 ### Component Specs
 
-**Navbar:** Fixed top, `bg-background/80 backdrop-blur-sm border-b border-border`, h-14. Uses `grid-cols-3`: left = Code2 icon + "Github Explorer" title + UpdatedAtBadge (24H, Clock icon), center = TanStack Router Links with `activeProps` (border + text-primary), right = empty spacer. Rate-limit: amber AlertTriangle icon next to timestamp.
+**Navbar:** Sticky top, `bg-background/80 backdrop-blur-sm border-b border-border`. Mobile: `flex flex-col items-center gap-2` — title+badge centered, links centered below. Desktop (md+): `grid grid-cols-3` — left = Code2 icon + "Github Explorer" title + UpdatedAtBadge, center = TanStack Router Links with `activeProps` (border + text-primary), right = empty spacer. Error indicator: amber AlertTriangle icon next to timestamp (shown on any query error, not just rate-limit).
 
-**RepositoryCard:** shadcn Card, `w-[400px]` fixed for scroll. Shows: truncated name (link + ExternalLink icon, title tooltip on hover), stars (yellow), description (line-clamp-3 with title tooltip), license (null-safe), forks, issues. "View Contributors" button (`variant="outline"`) always at bottom via `flex-1` on CardContent. Hover: `border-primary/50`.
+**RepositoryCard:** shadcn Card, responsive widths: `w-[85vw] sm:w-[350px] lg:w-[420px] xl:w-[480px]`. Shows: truncated name (link + ExternalLink icon, title tooltip) with stars — flex-col on mobile, sm:flex-row. Description (line-clamp-3 with title tooltip). Each detail on its own row: license (null-safe), forks, issues — each with icon + text. "View Contributors" button (`variant="outline"`) at bottom via CardFooter. `min-w-0 overflow-hidden` throughout for flexbox truncation. Hover: `border-primary/50`.
 
-**HorizontalScroll:** `overflow-x-auto`, `scroll-snap-type: x mandatory`, `items-stretch` (equal card heights), `gap-4`. Thin dark custom scrollbar (`bg-muted` track, `bg-muted-foreground/30` thumb). No scroll animations.
+**HorizontalScroll:** Outer: `overflow-x-auto`, thin dark custom scrollbar (`bg-muted` track, `bg-muted-foreground/30` thumb). Inner: `flex items-stretch gap-4 px-6` — px-6 aligns cards with navbar content. Snap scroll, no scroll animations.
 
 **ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
 
-**DeveloperCard:** shadcn Card, `w-[400px]` fixed for horizontal scroll (same pattern as RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold), truncated repo name + stars sub-line, large avatar (`owner.avatar_url`, `rounded-full w-24 h-24`) centered via flex. `flex-1` on content for consistent height. Hover: `border-primary/50`.
+**DeveloperCard:** shadcn Card, responsive widths: `w-[85vw] sm:w-[350px] lg:w-[420px] xl:w-[480px]` (matches RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold, `min-w-0 truncate`), truncated repo name + stars sub-line (`min-w-0 truncate` on text, `shrink-0` on stars), large avatar (`owner.avatar_url`, `rounded-full w-24 h-24`) centered via flex. `CardHeader` has `min-w-0 overflow-hidden`. Hover: `border-primary/50`.
 
-**StatusOverlay:** Loading → 5 skeleton cards (w-[400px]). Error → `AlertCircle` + retry button. Rate-limited → amber banner "Using cached data". Empty → friendly message. Shared by both pages.
+**StatusOverlay:** Props: `isLoading, isError, isRateLimited, isEmpty, hasData, onRetry`. Loading → 5 skeleton cards with responsive widths matching card breakpoints, `px-6`. Rate-limited → centered `w-fit` amber banner with hasData-aware message ("Using cached data" vs "Please wait"), always-visible Retry button. Error → `AlertCircle` + Retry, `px-6 py-2`. Empty → friendly message, `px-6 py-12`. Shared by both pages.
 
 ### Icons (Lucide React)
 

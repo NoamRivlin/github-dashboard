@@ -8,11 +8,11 @@
 |-------|--------|------|
 | 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ✅ Complete | 8/8 |
-| 2: UI Pages | 🔶 In Progress | 8/9 (2.9 pending — Playwright blocked by Chrome conflict) |
+| 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** Phase 2 components built (2.1–2.8), UI refinements applied. User wants more UI changes before 2.9 QA.
-**Blockers:** Playwright MCP can't launch while system Chrome is open. Config updated to use bundled Chromium (`--browser chromium` in `.mcp.json`) but needs session restart.
+**Current task:** Phase 2 complete. All UI components built, responsive layout refactored, visual QA done via Playwright at multiple widths. Ready for Phase 3.
+**Blockers:** None.
 
 ---
 
@@ -35,15 +35,15 @@
 - [x] 1.8 — Timestamp hook | useQueryTimestamp reads dataUpdatedAt. All 3 endpoints verified manually via test buttons (repos, developers, contributors)
 
 ## Phase 2: UI Pages
-- [x] 2.1 — Navbar | Grid layout: Code2 icon + "Github Explorer" + UpdatedAtBadge (24H) on left, TanStack Router Links centered (activeProps border + text-primary), empty right col. Rate-limit amber AlertTriangle.
-- [x] 2.2 — RepositoryCard | w-[400px] card with truncated name (link + ExternalLink icon), stars (yellow), line-clamp-3 description with title tooltip, license/forks/issues row, "View Contributors" outline button at bottom via flex-1 on CardContent.
-- [x] 2.3 — HorizontalScroll | overflow-x-auto, scroll-snap-type x mandatory, items-stretch for equal card heights, thin dark custom scrollbar (bg-muted track, bg-muted-foreground/30 thumb).
-- [x] 2.4 — Repositories page | Composes StatusOverlay + HorizontalScroll + RepositoryCard[] + ContributorsModal. Vertically centered via min-h-[calc(100vh-8rem)] flex justify-center.
-- [x] 2.5 — ContributorsModal | shadcn Dialog, controlled open via repoFullName state. Uses isPlaceholderData to show loading skeletons when switching repos (prevents stale data flicker). Dark scrollbar. Contributor avatars, truncated names, green contribution count.
-- [x] 2.6 — DeveloperCard | w-[400px] card, truncated login + repo name + stars, large centered avatar (w-24 h-24 rounded-full). flex-1 on content for consistent height.
-- [x] 2.7 — Developers page | Derives Developer[] from useRepositories (TanStack Query dedup). HorizontalScroll layout. Vertically centered.
-- [x] 2.8 — StatusOverlay | Loading: 5 skeleton cards (w-[400px]). Error: AlertCircle + retry button. Rate-limited: amber banner. Empty: friendly message. Shared by both pages.
-- [ ] 2.9 — Visual QA | **Blocked:** Playwright can't launch (Chrome conflict). Config updated to Chromium, awaiting session restart. Manual visual check done by user.
+- [x] 2.1 — Navbar | flex-col centered on mobile, grid-cols-3 on md+. Title+Code2+UpdatedAtBadge left, Links centered, empty right col. isError badge (amber AlertTriangle on any error).
+- [x] 2.2 — RepositoryCard | Responsive widths (85vw/350/420/480px). Stacked detail rows: description paragraph, license row, forks row, issues row. Name+stars flex-col on mobile, sm:flex-row. min-w-0 truncation throughout.
+- [x] 2.3 — HorizontalScroll | overflow-x-auto, snap scroll, items-stretch, thin dark scrollbar. Inner px-6 for navbar alignment.
+- [x] 2.4 — Repositories page | StatusOverlay + HorizontalScroll + RepositoryCard[] + ContributorsModal. Vertically centered. hasData prop for rate-limit messaging.
+- [x] 2.5 — ContributorsModal | shadcn Dialog, isPlaceholderData loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count.
+- [x] 2.6 — DeveloperCard | Responsive widths (85vw/350/420/480px). min-w-0 overflow-hidden on CardHeader. Truncated login + repo name + stars. Large centered avatar.
+- [x] 2.7 — Developers page | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered. hasData prop.
+- [x] 2.8 — StatusOverlay | Loading: responsive skeleton widths. Error: AlertCircle+retry with px-6 py-2. Rate-limited: centered w-fit banner, hasData-aware messaging, always-visible Retry. Empty: message.
+- [x] 2.9 — Visual QA | Playwright verified at 1440px, 375px, 287px, 241px. Navbar wraps correctly, cards responsive, truncation works, error states styled.
 
 ## Phase 3: Polish & QA
 - [ ] 3.1 — Code review |
@@ -86,6 +86,22 @@
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 | UI polish needed | ⚠️ | User wants further adjustments to card sizing, layout, etc. |
 
+### Task 2.9 — Responsive UI Refactor & Visual QA (Playwright)
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Navbar 1440px | ✅ | Grid-cols-3: title+badge left, links centered |
+| Navbar 375px | ✅ | Flex-col: title+badge centered, links below centered |
+| Navbar 287px | ✅ | Wraps correctly, no overflow |
+| Repo cards responsive | ✅ | 85vw on mobile, scales up at sm/lg/xl breakpoints |
+| Dev cards responsive | ✅ | Same breakpoints, truncation works for long names |
+| Dev card 241px | ✅ | Long login/repo names truncate, no layout break |
+| Edge-to-edge scroll | ✅ | Cards extend full viewport, px-6 inner alignment |
+| Stacked card rows | ✅ | Each detail (license, forks, issues) on own row |
+| Rate-limit state | ✅ | Centered banner, hasData-aware message, Retry always visible |
+| Error state | ✅ | AlertCircle + Retry, proper padding |
+| StatusOverlay skeletons | ✅ | Responsive widths matching card breakpoints |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
 ---
 
 ## Deviations Log
@@ -93,9 +109,13 @@
 |------|-----------|--------|
 | 2.6, 2.7 | DeveloperCard uses HorizontalScroll instead of Grid | Mockup shows horizontal scroll for both pages |
 | 2.1 | Navbar uses grid-cols-3 with title+timestamp on left (not UpdatedAt on right) | Matches mockup layout more closely |
-| 2.2, 2.6 | Cards w-[400px] instead of w-[360px] | User feedback: cards should be bigger |
+| 2.2, 2.6 | Cards responsive (85vw/350/420/480px) instead of fixed w-[400px] | User feedback: larger on wide screens, responsive on small |
+| 2.2 | Each card detail on own row (not grouped) | User feedback: more symmetrical layout matching mockup |
 | 2.5 | ContributorsModal uses isPlaceholderData for loading state | Prevents flicker when switching repos while keeping per-repo cache |
 | 1.5 | fetchRepositories sorts client-side by stargazers_count | Prevents jarring reorder on 10s refetch |
+| layout | Removed max-w-7xl from main, edge-to-edge scroll | Mockup shows cards extending to viewport edge |
+| 2.1 | UpdatedAtBadge uses isError (generic) not isRateLimited | User simplification: amber indicator on any error |
+| 2.8 | StatusOverlay has hasData prop, rate-limit always shows Retry | User preference: always offer retry action |
 
 ---
 
@@ -136,7 +156,7 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — clarified shared query pattern
 - `.ai-docs/TASKS.md` — updated task 2.7 description
 
-### Phase 2 Commit — 🔶 In Progress
+### Phase 2 Commit (initial) — ✅
 ```
 feat(ui): implement Phase 2 UI pages — navbar, cards, scroll, modal, status overlay
 ```
@@ -153,9 +173,23 @@ Files changed:
 - `src/routes/developers.tsx` — composed page with dev cards, scroll, vertical centering
 - `src/hooks/queries/useQueryTimestamp.ts` — 24H format (en-GB, hour12: false)
 - `src/api/github.ts` — client-side sort by stargazers_count for stable ordering
-- `.ai-docs/PROGRESS.md` — updated Phase 2 tasks
-- `.ai-docs/ARCHITECTURE.md` — updated card widths, navbar layout, modal behavior
-- `.ai-docs/TASKS.md` — updated task details
+
+### Phase 2 Commit (refactor) — ✅
+```
+refactor(ui): responsive layout, stacked card rows, edge-to-edge scroll, error states
+```
+Files changed:
+- `src/routes/__root.tsx` — removed max-w-7xl from main, header py-3 instead of h-14
+- `src/components/Navbar.tsx` — flex-col centered on mobile, grid-cols-3 on md+, isError badge
+- `src/components/UpdatedAtBadge.tsx` — renamed isRateLimited → isError for generic error indicator
+- `src/components/HorizontalScroll.tsx` — px-6 inner alignment with navbar
+- `src/components/RepositoryCard.tsx` — responsive widths (85vw/350/420/480px), stacked detail rows, min-w-0 truncation
+- `src/components/DeveloperCard.tsx` — responsive widths, min-w-0 overflow-hidden on CardHeader, truncation
+- `src/components/StatusOverlay.tsx` — hasData prop, responsive skeleton widths, centered rate-limit banner, always-visible Retry
+- `src/routes/repositories.tsx` — hasData prop to StatusOverlay
+- `src/routes/developers.tsx` — hasData prop to StatusOverlay
+- `src/hooks/queries/useRepositories.ts` — minor cleanup
+- `src/api/mocks/index.ts` — mock toggle change
 
 ### Phase 3 Commit — ⬜ Pending
 ```
