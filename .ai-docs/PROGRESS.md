@@ -11,7 +11,7 @@
 | 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** Phase 2 complete. All UI components built, responsive layout refactored, visual QA done via Playwright at multiple widths. Ready for Phase 3.
+**Current task:** Pre-Phase 3 optimization complete. localStorage persistence and focus-only polling implemented. Ready for Phase 3.
 **Blockers:** None.
 
 ---
@@ -44,6 +44,11 @@
 - [x] 2.7 — Developers page | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered. hasData prop.
 - [x] 2.8 — StatusOverlay | Loading: responsive skeleton widths. Error: AlertCircle+retry with px-6 py-2. Rate-limited: centered w-fit banner, hasData-aware messaging, always-visible Retry. Empty: message.
 - [x] 2.9 — Visual QA | Playwright verified at 1440px, 375px, 287px, 241px. Navbar wraps correctly, cards responsive, truncation works, error states styled.
+
+## Pre-Phase 3: Fetch Optimization
+- [x] Opt.1 — localStorage persistence | PersistQueryClientProvider + createAsyncStoragePersister. Entire query cache (repos + contributors) persisted to localStorage, updated after every fetch (1s throttle). maxAge 20h. On refresh/new tab, data loads instantly; stale queries refetch in background.
+- [x] Opt.2 — Focus-only polling | refetchIntervalInBackground: false on useRepositories. Background tabs make zero API requests. Polling resumes on tab focus.
+- [x] Opt.3 — Contributors gcTime bump | 10min → 30min. Contributor data changes rarely, survives longer in cache and localStorage.
 
 ## Phase 3: Polish & QA
 - [ ] 3.1 — Code review |
@@ -190,6 +195,18 @@ Files changed:
 - `src/routes/developers.tsx` — hasData prop to StatusOverlay
 - `src/hooks/queries/useRepositories.ts` — minor cleanup
 - `src/api/mocks/index.ts` — mock toggle change
+
+### Pre-Phase 3 Commit (fetch optimization) — ✅
+```
+feat(query): add localStorage persistence and focus-only polling
+```
+Files changed:
+- `package.json` — added @tanstack/query-async-storage-persister, @tanstack/react-query-persist-client
+- `src/main.tsx` — PersistQueryClientProvider, createAsyncStoragePersister, global gcTime 10min, maxAge 20h
+- `src/hooks/queries/useRepositories.ts` — refetchIntervalInBackground: false, removed per-query gcTime
+- `src/hooks/queries/useContributors.ts` — gcTime bumped to 30min
+- `.ai-docs/API_STRATEGY.md` — updated query config, rate-limit table, key decisions
+- `.ai-docs/PROGRESS.md` — added optimization entries
 
 ### Phase 3 Commit — ⬜ Pending
 ```

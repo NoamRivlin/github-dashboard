@@ -7,8 +7,11 @@ export function useRepositories() {
     queryKey: ["repositories"],
     queryFn: fetchRepositories,
     refetchInterval: 10_000,
+    // Stop polling when the browser tab is not focused.
+    // Polling resumes automatically when the user returns to the tab
+    // (refetchOnWindowFocus is true by default, triggering a refetch if stale).
+    refetchIntervalInBackground: false,
     staleTime: 10_000,
-    gcTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
     retry: (failureCount, error) =>
       error instanceof RateLimitError ? false : failureCount < 2,

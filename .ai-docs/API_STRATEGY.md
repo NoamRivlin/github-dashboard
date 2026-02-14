@@ -118,10 +118,10 @@ apiClient.interceptors.response.use(
   queryKey: ['repositories'],
   queryFn: fetchRepositories,
   refetchInterval: 10_000,
+  refetchIntervalInBackground: false,   // Stop polling when tab is unfocused
   staleTime: 10_000,
-  gcTime: 5 * 60 * 1000,              // Cache 5 min
   placeholderData: keepPreviousData,    // Show old data during refetch
-  retry: (count, error) => error.name === 'RateLimitError' ? false : count < 2,
+  retry: (count, error) => error instanceof RateLimitError ? false : count < 2,
 }
 ```
 
@@ -132,9 +132,22 @@ apiClient.interceptors.response.use(
   queryFn: () => fetchContributors(repoFullName),
   enabled,                              // Only when modal is open
   staleTime: 5 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
+  gcTime: 30 * 60 * 1000,              // 30 min — contributor data changes rarely
   placeholderData: keepPreviousData,
 }
+```
+
+**QueryClient defaults** (main.tsx):
+```ts
+gcTime: 10 * 60 * 1000                 // 10 min global default
+```
+
+**Persistence** (main.tsx):
+```ts
+PersistQueryClientProvider + createAsyncStoragePersister({
+  storage: window.localStorage          // Entire cache persisted, updated after every fetch (1s throttle)
+})
+persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data over no data
 ```
 
 ### Key Decisions
@@ -142,6 +155,9 @@ apiClient.interceptors.response.use(
 - **Contributors cached per repo** — same modal opened twice doesn't re-fetch within staleTime. `isPlaceholderData` used in UI to show loading skeletons instead of stale data from a different repo
 - **refetchInterval is global** — doesn't reset on navigation between pages
 - **Minimize calls:** 1 polled endpoint + on-demand contributors only
+- **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators
+- **Focus-only polling** — background tabs make zero API requests. Polling resumes on tab focus
+- **Generous maxAge (20h)** — better to show old data with stale indicators (navbar timestamp + amber warning + overlay message) than no data at all
 
 ---
 
@@ -153,5 +169,9 @@ apiClient.interceptors.response.use(
 | 403 rate-limited | Query fails → `placeholderData` keeps last good data visible |
 | Rate-limited + no cache | StatusOverlay shows friendly error |
 | Rate limit clears | Next 10s tick succeeds, UI auto-updates |
+| Tab unfocused | Polling stops completely, zero requests |
+| Tab refocused | Immediate refetch if data is stale |
+| Page refresh | Cached data from localStorage shown instantly, background refetch |
+| Refresh + rate-limited | Persisted data shown, navbar shows last update time, amber warning |
 
 **Core rule:** User ALWAYS sees data. Old data > no data.
