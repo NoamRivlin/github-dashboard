@@ -41,10 +41,7 @@ export function RepositoryCard({ repository, onViewContributors }: RepositoryCar
         </CardHeader>
 
         <CardContent className="flex-1 space-y-3">
-          <p
-            className="min-h-20 line-clamp-4 leading-6 lg:text-base"
-            title={repository.description ?? undefined}
-          >
+          <p className="min-h-20 line-clamp-4 leading-6 lg:text-base" title={repository.description ?? undefined}>
             {repository.description ?? "No description"}
           </p>
 
@@ -64,11 +61,10 @@ export function RepositoryCard({ repository, onViewContributors }: RepositoryCar
           </div>
         </CardContent>
 
-        <CardFooter >
+        <CardFooter>
           <Button
             variant="outline"
-            size="sm"
-            className="w-full cursor-pointer font-semibold sm:text-base"
+            className="w-full cursor-pointer font-semibold sm:text-base hover:bg-primary/10 hover:text-primary"
             onClick={() => onViewContributors(repository.full_name)}
           >
             <Users className="h-4 w-4" />
