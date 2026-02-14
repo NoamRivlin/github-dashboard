@@ -192,19 +192,21 @@ hover-tilt [data-slot="card"]::before {
   transition: opacity 0.3s ease, transform 0.5s ease;
   transform: translate3d(0, 0, 0) rotate(0deg) scale(1.05);
   background:
+  /* gold gradient */
     radial-gradient(
       circle at calc(var(--gradient-x, 50%)) calc(var(--gradient-y, 50%)),
-      hsl(186 100% 78% / 0.55) 0%,
-      hsl(267 100% 80% / 0.35) 24%,
-      hsl(326 100% 78% / 0.28) 42%,
+      hsl(50 100% 50% / 0.55) 0%,
+      hsl(70 100% 50% / 0.35) 24%,
+      hsl(90 100% 50% / 0.28) 42%,
       transparent 68%
     ),
+    /* blue gradient */
     conic-gradient(
       from calc(var(--hover-tilt-angle, 0deg) * -0.7) at 50% 50%,
-      hsl(190 100% 78% / 0.35),
-      hsl(245 100% 76% / 0.28),
-      hsl(320 100% 78% / 0.3),
-      hsl(190 100% 78% / 0.35)
+      hsl(200 100% 50% / 0.35),
+      hsl(250 100% 50% / 0.28),
+      hsl(300 100% 50% / 0.3),
+      hsl(200 100% 50% / 0.35)
     );
 }
 

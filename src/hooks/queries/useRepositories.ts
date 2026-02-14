@@ -5,7 +5,7 @@ import { RateLimitError } from "@/api/client"
 export function useRepositories() {
   return useQuery({
     queryKey: ["repositories"],
-    queryFn: fetchRepositories,
+    queryFn: ({ signal }) => fetchRepositories(signal),
     refetchInterval: 10_000,
     // Stop polling when the browser tab is not focused.
     // Polling resumes automatically when the user returns to the tab

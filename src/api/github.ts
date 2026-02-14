@@ -4,7 +4,9 @@ import apiClient from "@/api/client"
 
 import type { Contributor, RepositorySearchResponse } from "@/types/github"
 
-export async function fetchRepositories(): Promise<RepositorySearchResponse> {
+export async function fetchRepositories(
+  signal?: AbortSignal,
+): Promise<RepositorySearchResponse> {
 
 
   const { data } = await apiClient.get<RepositorySearchResponse>(
@@ -16,6 +18,7 @@ export async function fetchRepositories(): Promise<RepositorySearchResponse> {
         order: "desc",
         per_page: 10,
       },
+      signal,
     },
   )
 
@@ -24,11 +27,13 @@ export async function fetchRepositories(): Promise<RepositorySearchResponse> {
 
 export async function fetchContributors(
   repoFullName: string,
+  signal?: AbortSignal,
 ): Promise<Contributor[]> {
 
 
   const { data } = await apiClient.get<Contributor[]>(
-    `/repos/${repoFullName}/contributors`
+    `/repos/${repoFullName}/contributors`,
+    { signal },
   )
   return data
 }
