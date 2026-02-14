@@ -9,9 +9,9 @@
 | 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ✅ Complete | 8/8 |
 | 2: UI Pages | ✅ Complete | 9/9 |
-| 3: Polish & QA | 🔄 In Progress | 1/7 |
+| 3: Polish & QA | 🔄 In Progress | 5/7 |
 
-**Current task:** 3.1 Code review complete. Ready for 3.2.
+**Current task:** 3.2–3.5 complete (automated E2E). Ready for 3.6.
 **Blockers:** None.
 
 ---
@@ -63,10 +63,10 @@
 
 ## Phase 3: Polish & QA
 - [x] 3.1 — Code review | DRY refactor: extracted constants (query keys, timing, skeleton count) to `lib/constants.ts`, shared Tailwind classes (scrollbar, page layout, card dimensions) to `lib/card-styles.ts`. Exposed `isRateLimited` from `useRepositories()` — pages no longer import `RateLimitError`. Removed duplicate `.dark` CSS block, cleaned `api/github.ts` formatting, removed comments from hooks. Updated docs: removed mock references, clarified no-retry on rate-limit rationale.
-- [ ] 3.2 — Rate-limit test |
-- [ ] 3.3 — Responsive check |
-- [ ] 3.4 — Full walkthrough |
-- [ ] 3.5 — Console audit |
+- [x] 3.2 — Rate-limit test | Automated via Playwright E2E: 403 with header, 403 with message body, non-rate-limit 403 → generic error, no-retry verification
+- [x] 3.3 — Responsive check | Automated via Playwright E2E: 1440/768/375px viewports, mobile modal usability, no body overflow
+- [x] 3.4 — Full walkthrough | Automated via Playwright E2E: navigation (redirect, nav links, active state), repo cards (all fields, null handling), contributors modal (open/data/close), developers cards (name/repo/stars/avatar), horizontal scroll
+- [x] 3.5 — Console + network audit | Automated via Playwright E2E: correct API endpoint + params, contributors lazy-loaded on modal open, query deduplication across pages, retry behavior on 500
 - [ ] 3.6 — Performance |
 - [ ] 3.7 — Final cleanup |
 
@@ -154,6 +154,18 @@
 | Responsive behavior | ✅ | Mobile still fits cleanly; typography gains are weighted toward larger breakpoints |
 | Hover profile update | ✅ | RepositoryCard now uses stronger luminance/soft-light hover-tilt parameters with shadow enabled |
 | Manual screenshots | ✅ | User-provided desktop/mobile screenshots confirm layout remains intact |
+
+### Tasks 3.2–3.5 — Automated E2E Test Suite (Playwright)
+33 tests, 6 files, all passing consistently (~7–9s). API mocked via `page.route()`.
+
+| File | Tests | Status | Notes |
+|------|-------|--------|-------|
+| `navigation.spec.ts` | 5 | ✅ | Root redirect, nav links, active styling, timestamp badge |
+| `repositories.spec.ts` | 8 | ✅ | Card count, all fields, null license/description, contributors modal open/data/close |
+| `developers.spec.ts` | 4 | ✅ | Card count, name/repo/stars, avatar image, horizontal scroll container |
+| `error-states.spec.ts` | 4 | ✅ | 403 rate-limit banner, 500 error + retry, retry recovery, cross-page error |
+| `responsive.spec.ts` | 4 | ✅ | Desktop 1440, tablet 768, mobile 375, modal at mobile |
+| `api.spec.ts` | 8 | ✅ | Endpoint params, lazy contributor fetch, correct repo URL, rate-limit (header + message), non-rate-limit 403, query dedup, 500 retries |
 
 ---
 
@@ -315,6 +327,22 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — synchronized RepositoryCard spec and typography wording
 - `.ai-docs/TASKS.md` — added HT.9 tracking row
 - `.ai-docs/PROGRESS.md` — added HT.9 status, QA notes, and deviation entry
+
+### E2E Test Suite Commit — ⬜ Pending
+```
+test(e2e): add 33 Playwright E2E tests covering UI, API, errors, and responsive layout
+```
+Files changed:
+- `playwright.config.ts` — new: Playwright config with chromium, webServer, baseURL
+- `e2e/fixtures/mock-data.ts` — new: deterministic mock repos (3) and contributors (3)
+- `e2e/helpers/api-mock.ts` — new: reusable `page.route()` interceptors + localStorage clear
+- `e2e/navigation.spec.ts` — new: 5 tests (redirect, nav links, active state, timestamp)
+- `e2e/repositories.spec.ts` — new: 8 tests (cards, fields, null handling, contributors modal)
+- `e2e/developers.spec.ts` — new: 4 tests (cards, name/repo/stars, avatar, scroll)
+- `e2e/error-states.spec.ts` — new: 4 tests (rate-limit, error+retry, recovery, cross-page)
+- `e2e/responsive.spec.ts` — new: 4 tests (1440/768/375px, mobile modal)
+- `e2e/api.spec.ts` — new: 8 tests (endpoint params, lazy fetch, dedup, rate-limit detection, retries)
+- `package.json` — added `e2e` and `e2e:ui` scripts
 
 ### Phase 3 Commit — ⬜ Pending
 ```

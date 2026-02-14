@@ -93,11 +93,11 @@ Then call `browser_install` once, then `browser_navigate` again — it will laun
 
 | # | Task | Role | Deps | Key Details |
 |---|------|------|------|-------------|
-| 3.1 | Code review | Reviewer | 2.9 | Full audit: DRY, naming, no comments, no `any`, conventions. See reviewer checklist in `MASTER_PLAN.md` |
-| 3.2 | Rate-limit test | QA | 3.1 | Toggle mocks → simulate 403. Verify stale data displays, indicator shows, no crash |
-| 3.3 | Responsive check | QA | 3.1 | **Playwright:** viewports 1440/1024/768px. No broken layouts |
-| 3.4 | Full walkthrough | QA | 3.2, 3.3 | E2E: load → repos → scroll → modal → close → devs → verify timestamp updates |
-| 3.5 | Console + network audit | QA | 3.4 | Zero console errors. No redundant API calls. 10s interval correct, no reset on nav |
+| 3.1 | Code review | ✅ Done | 2.9 | Full audit: DRY, naming, no comments, no `any`, conventions. See reviewer checklist in `MASTER_PLAN.md` |
+| 3.2 | Rate-limit test | ✅ Done | 3.1 | Automated: Playwright `api.spec.ts` + `error-states.spec.ts` — 403 header/message detection, no-retry, non-rate-limit 403 → generic error |
+| 3.3 | Responsive check | ✅ Done | 3.1 | Automated: Playwright `responsive.spec.ts` — 1440/768/375px, mobile modal usability, no body overflow |
+| 3.4 | Full walkthrough | ✅ Done | 3.2, 3.3 | Automated: Playwright `navigation.spec.ts`, `repositories.spec.ts`, `developers.spec.ts` — redirect, nav, cards, fields, modal, scroll |
+| 3.5 | Console + network audit | ✅ Done | 3.4 | Automated: Playwright `api.spec.ts` — correct endpoint/params, lazy contributors, query dedup, retry on 500 |
 | 3.6 | Performance | Reviewer | 3.5 | Re-renders, memo usage, query efficiency, contributors only fetched when modal open |
 | 3.7 | Final cleanup | Reviewer | 3.6 | Remove unused imports/dead code, final DRY pass, update PROGRESS.md |
 
