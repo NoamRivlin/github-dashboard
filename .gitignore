@@ -25,3 +25,5 @@ dist-ssr
 
 .env
 .playwright*
+.claude/
+repositories-page-*.png
