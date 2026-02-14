@@ -56,6 +56,21 @@
 
 ---
 
+## Pre-Phase 3: Visual Enhancement (hover-tilt)
+
+| # | Task | Role | Deps | Key Details |
+|---|------|------|------|-------------|
+| HT.1 | Install hover-tilt + TS types | ✅ Done | 2.9 | npm install hover-tilt, web component import in main.tsx, JSX type declaration |
+| HT.2 | Wrap cards with hover-tilt | ✅ Done | HT.1 | `<hover-tilt>` wrapper on RepositoryCard + DeveloperCard, CSS ::part() selectors |
+| HT.3 | Enhanced shadow + gradients | ✅ Done | HT.2 | 5-layer neon underglow, idle resting shadow, luminance-beam + aurora-sweep custom gradients |
+| HT.4 | Grey theme | ✅ Done | HT.2 | bg hsl(222 18% 20%), card hsl(222 22% 14%), brighter muted-foreground for readability |
+| HT.5 | Fix card clipping | ✅ Done | HT.2 | -my-10 py-10 pb-14 padding trick on HorizontalScroll outer div |
+| HT.6 | Playwright verification | ✅ Done | HT.3-5 | Both pages render, hover effects work, modal functional, zero new console errors |
+
+→ **COMMIT → STOP → REVIEW**
+
+---
+
 ## Phase 3: Polish & QA
 
 | # | Task | Role | Deps | Key Details |

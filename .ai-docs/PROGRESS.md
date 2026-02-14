@@ -11,7 +11,7 @@
 | 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | ⬜ Not Started | 0/7 |
 
-**Current task:** Pre-Phase 3 optimization complete. localStorage persistence and focus-only polling implemented. Ready for Phase 3.
+**Current task:** hover-tilt 3D card effects + grey theme complete. Ready for Phase 3.
 **Blockers:** None.
 
 ---
@@ -49,6 +49,15 @@
 - [x] Opt.1 — localStorage persistence | PersistQueryClientProvider + createAsyncStoragePersister. Entire query cache (repos + contributors) persisted to localStorage, updated after every fetch (1s throttle). maxAge 20h. On refresh/new tab, data loads instantly; stale queries refetch in background.
 - [x] Opt.2 — Focus-only polling | refetchIntervalInBackground: false on useRepositories. Background tabs make zero API requests. Polling resumes on tab focus.
 - [x] Opt.3 — Contributors gcTime bump | 10min → 30min. Contributor data changes rarely, survives longer in cache and localStorage.
+
+## Pre-Phase 3: Visual Enhancement (hover-tilt)
+- [x] HT.1 — Install hover-tilt, TS types, web component import in main.tsx
+- [x] HT.2 — Wrap RepositoryCard + DeveloperCard with `<hover-tilt>` web component
+- [x] HT.3 — CSS hover-tilt effects: 5-layer neon shadow, idle resting shadow, border glow, ::part() selectors
+- [x] HT.4 — Custom gradients: luminance beam (repo cards), aurora sweep (dev cards) via data-gradient attributes
+- [x] HT.5 — Grey theme: background hsl(222 18% 20%), darker cards hsl(222 22% 14%), brighter muted-foreground
+- [x] HT.6 — Fix card clipping: -my-10 py-10 pb-14 padding trick on HorizontalScroll
+- [x] HT.7 — Playwright verification: both pages render, hover effects work, modal functional, zero new errors
 
 ## Phase 3: Polish & QA
 - [ ] 3.1 — Code review |
@@ -107,6 +116,18 @@
 | StatusOverlay skeletons | ✅ | Responsive widths matching card breakpoints |
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 
+### hover-tilt Enhancement — Playwright QA
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Grey theme renders | ✅ | Background #2b2f3a, cards darker, text readable |
+| Repo cards hover | ✅ | Blue border glow, neon shadow, scale 1.05, tilt active |
+| Dev cards hover | ✅ | Same effects with cyan aurora sweep gradient |
+| Card clipping | ✅ | Fixed — padding trick prevents overflow cut |
+| Custom gradients applied | ✅ | data-gradient attrs set, CSS vars computed correctly |
+| Contributors modal | ✅ | Opens, shows data, closes — unaffected by changes |
+| Console errors | ✅ | Zero new errors (only pre-existing Radix ref warning) |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
 ---
 
 ## Deviations Log
@@ -121,6 +142,9 @@
 | layout | Removed max-w-7xl from main, edge-to-edge scroll | Mockup shows cards extending to viewport edge |
 | 2.1 | UpdatedAtBadge uses isError (generic) not isRateLimited | User simplification: amber indicator on any error |
 | 2.8 | StatusOverlay has hasData prop, rate-limit always shows Retry | User preference: always offer retry action |
+| HT | CSS element selectors instead of class selectors on hover-tilt | React 18 sets className as `classname` attribute on web components — classes don't apply |
+| HT | data-gradient attrs + CSS attr selectors for custom gradients | Inline style on web component causes `setProperty` crash in React 18 |
+| HT | Theme shifted from near-black navy to gentle grey | User request: make shadows/effects visible, match hover-tilt site aesthetic |
 
 ---
 
@@ -207,6 +231,31 @@ Files changed:
 - `src/hooks/queries/useContributors.ts` — gcTime bumped to 30min
 - `.ai-docs/API_STRATEGY.md` — updated query config, rate-limit table, key decisions
 - `.ai-docs/PROGRESS.md` — added optimization entries
+
+### hover-tilt Enhancement Commit (initial) — ✅
+```
+feat(ui): add hover-tilt 3D card effects with grey theme
+```
+Files changed:
+- `package.json` — added hover-tilt ^1.0.0
+- `src/types/hover-tilt.d.ts` — new: JSX IntrinsicElements types for web component
+- `src/main.tsx` — import hover-tilt/web-component registration
+- `src/index.css` — hover-tilt CSS (::part selectors, 3-layer blue shadow, border glow)
+- `src/components/RepositoryCard.tsx` — wrapped with `<hover-tilt>`, removed old hover classes
+- `src/components/DeveloperCard.tsx` — wrapped with `<hover-tilt>`, removed old hover classes
+
+### hover-tilt Enhancement Commit (enhanced) — ✅
+```
+feat(ui): grey theme, enhanced hover-tilt effects, fix card clipping
+```
+Files changed:
+- `src/index.css` — grey theme colors (bg hsl(222 18% 20%), card hsl(222 22% 14%)), 5-layer neon shadow, idle resting shadow, luminance-beam + aurora-sweep custom gradient CSS
+- `src/components/HorizontalScroll.tsx` — -my-10 py-10 pb-14 clipping fix
+- `src/components/RepositoryCard.tsx` — data-gradient="luminance-beam", scale-factor=1.05, glare-intensity=0.4, blend-mode=overlay
+- `src/components/DeveloperCard.tsx` — data-gradient="aurora-sweep", scale-factor=1.05, glare-intensity=0.4, blend-mode=overlay
+- `.ai-docs/ARCHITECTURE.md` — updated theme, component specs, tech stack
+- `.ai-docs/PROGRESS.md` — added hover-tilt entries + commit log
+- `.ai-docs/TASKS.md` — added hover-tilt task section
 
 ### Phase 3 Commit — ⬜ Pending
 ```
