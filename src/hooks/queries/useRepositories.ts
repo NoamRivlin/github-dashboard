@@ -9,7 +9,6 @@ export function useRepositories() {
     refetchInterval: 10_000,
     // Stop polling when the browser tab is not focused.
     // Polling resumes automatically when the user returns to the tab
-    // (refetchOnWindowFocus is true by default, triggering a refetch if stale).
     refetchIntervalInBackground: false,
     staleTime: 10_000,
     placeholderData: keepPreviousData,

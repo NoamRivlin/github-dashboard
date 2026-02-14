@@ -7,7 +7,6 @@ import { UpdatedAtBadge } from "@/components/UpdatedAtBadge"
 export function Navbar() {
   const timestamp = useQueryTimestamp()
   const { error } = useRepositories()
-  
 
   return (
     <nav className="flex flex-col items-center gap-2 md:grid md:grid-cols-3 md:items-center">

@@ -11,14 +11,7 @@ interface StatusOverlayProps {
   onRetry: () => void
 }
 
-export function StatusOverlay({
-  isLoading,
-  isError,
-  isRateLimited,
-  isEmpty,
-  hasData,
-  onRetry,
-}: StatusOverlayProps) {
+export function StatusOverlay({ isLoading, isError, isRateLimited, isEmpty, hasData, onRetry }: StatusOverlayProps) {
   if (isLoading) {
     return (
       <div className="flex gap-4 overflow-hidden px-6">
@@ -61,9 +54,7 @@ export function StatusOverlay({
     return (
       <div className="flex flex-col items-center gap-3 px-6 py-2">
         <AlertCircle className="h-10 w-10 text-destructive" />
-        <p className="text-sm text-muted-foreground">
-          Failed to load data.
-        </p>
+        <p className="text-sm text-muted-foreground">Failed to load data.</p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           Retry
         </Button>
@@ -74,9 +65,7 @@ export function StatusOverlay({
   if (isEmpty) {
     return (
       <div className="flex flex-col items-center gap-3 px-6 py-12">
-        <p className="text-sm text-muted-foreground">
-          No data available.
-        </p>
+        <p className="text-sm text-muted-foreground">No data available.</p>
       </div>
     )
   }

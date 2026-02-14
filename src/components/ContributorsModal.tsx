@@ -1,17 +1,17 @@
-import { Users } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useContributors } from "@/hooks/queries/useContributors";
+import { Users } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useContributors } from "@/hooks/queries/useContributors"
 
 interface ContributorsModalProps {
-  repoFullName: string | null;
-  onClose: () => void;
+  repoFullName: string | null
+  onClose: () => void
 }
 
 export function ContributorsModal({ repoFullName, onClose }: ContributorsModalProps) {
-  const { data, isLoading, isError, isPlaceholderData } = useContributors(repoFullName ?? "", !!repoFullName);
+  const { data, isLoading, isError, isPlaceholderData } = useContributors(repoFullName ?? "", !!repoFullName)
 
-  const showLoading = isLoading || isPlaceholderData;
+  const showLoading = isLoading || isPlaceholderData
 
   return (
     <Dialog open={!!repoFullName} onOpenChange={(open) => !open && onClose()}>
@@ -56,5 +56,5 @@ export function ContributorsModal({ repoFullName, onClose }: ContributorsModalPr
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import { Star, GitFork, CircleDot, Scale, ExternalLink, Users } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CARD_BASE_DIMENSIONS } from "@/lib/card-styles";
-import type { Repository } from "@/types/github";
+import { Star, GitFork, CircleDot, Scale, ExternalLink, Users } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { CARD_BASE_DIMENSIONS } from "@/lib/card-styles"
+import type { Repository } from "@/types/github"
 
 interface RepositoryCardProps {
-  repository: Repository;
-  onViewContributors: (repoFullName: string) => void;
+  repository: Repository
+  onViewContributors: (repoFullName: string) => void
 }
 
 export function RepositoryCard({ repository, onViewContributors }: RepositoryCardProps) {
@@ -73,5 +73,5 @@ export function RepositoryCard({ repository, onViewContributors }: RepositoryCar
         </CardFooter>
       </Card>
     </hover-tilt>
-  );
+  )
 }

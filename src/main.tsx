@@ -43,10 +43,7 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister, maxAge: 20 * 60 * 60 * 1000 }}
-    >
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 20 * 60 * 60 * 1000 }}>
       <RouterProvider router={router} />
     </PersistQueryClientProvider>
   </StrictMode>,

@@ -1,4 +1,4 @@
-declare module "hover-tilt/web-component" {}
+declare module "hover-tilt/web-component" { }
 
 declare namespace JSX {
   interface IntrinsicElements {
