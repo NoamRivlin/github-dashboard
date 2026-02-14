@@ -49,13 +49,9 @@ export function StatusOverlay({
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
           <span className="text-sm text-amber-500">
             {hasData
-              ? "Rate limit reached. Using cached data."
-              : "Rate limit reached. Please wait a moment and try again."}
+              ? "Rate limit reached, please wait a moment, using cached data."
+              : "Rate limit reached, please wait a moment."}
           </span>
-
-          <Button variant="outline" size="sm" className="shrink-0 border-amber-500/30 text-amber-500 hover:bg-amber-500/10" onClick={onRetry}>
-            Retry
-          </Button>
         </div>
       </div>
     )

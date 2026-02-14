@@ -18,7 +18,7 @@ export async function fetchRepositories(): Promise<RepositorySearchResponse> {
       },
     },
   )
-  data.items.sort((a, b) => b.stargazers_count - a.stargazers_count)
+
   return data
 }
 

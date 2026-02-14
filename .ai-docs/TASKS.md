@@ -66,6 +66,9 @@
 | HT.4 | Grey theme | ✅ Done | HT.2 | bg hsl(222 18% 20%), card hsl(222 22% 14%), brighter muted-foreground for readability |
 | HT.5 | Fix card clipping | ✅ Done | HT.2 | -my-10 py-10 pb-14 padding trick on HorizontalScroll outer div |
 | HT.6 | Playwright verification | ✅ Done | HT.3-5 | Both pages render, hover effects work, modal functional, zero new console errors |
+| HT.7 | Card dimension parity + content sizing rebalance | ✅ Done | HT.6 | Shared `CARD_BASE_DIMENSIONS` (`min-h-[24rem]` + responsive widths) for RepositoryCard and DeveloperCard. Developer card uses larger avatar/text. Repository description uses 4-line baseline + stronger responsive typography on wider screens. |
+| HT.8 | Verification fallback when Playwright MCP fails | ✅ Done | HT.7 | If MCP session aborts, use localhost manual checks and user-provided screenshots, then continue with lint/type checks and document limitation in PROGRESS.md. |
+| HT.9 | Repository card visual weight retune | ✅ Done | HT.8 | Increased repository text presence (title/stars/meta/button), kept mobile-safe sizing, and switched RepositoryCard hover-tilt profile to stronger luminance/soft-light settings while preserving shared card dimensions. |
 
 → **COMMIT → STOP → REVIEW**
 

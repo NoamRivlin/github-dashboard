@@ -58,6 +58,8 @@
 - [x] HT.5 — Grey theme: background hsl(222 18% 20%), darker cards hsl(222 22% 14%), brighter muted-foreground
 - [x] HT.6 — Fix card clipping: -my-10 py-10 pb-14 padding trick on HorizontalScroll
 - [x] HT.7 — Playwright verification: both pages render, hover effects work, modal functional, zero new errors
+- [x] HT.8 — Card parity + typography rebalance: shared `CARD_BASE_DIMENSIONS` for equal card dimensions, larger DeveloperCard visual content (avatar/text), stronger responsive RepositoryCard typography (`sm`/`lg`) with 4-line description baseline
+- [x] HT.9 — Repository visual weight retune: refined repo typography emphasis (title/stars/meta/button), retained responsive/mobile fit, and updated RepositoryCard hover-tilt config (`tilt-factor=0.5`, `scale-factor=1.03`, `glare-intensity=1.3`, `glare-mask-mode=luminance`, `blend-mode=soft-light`, `shadow`)
 
 ## Phase 3: Polish & QA
 - [ ] 3.1 — Code review |
@@ -135,6 +137,24 @@
 | Fix applied | ✅ | Converted `DialogOverlay` + `DialogContent` to `React.forwardRef` + `.displayName` in `src/components/ui/dialog.tsx` |
 | Playwright re-verify | ✅ | Clicked View Contributors — 0 console errors |
 
+### HT.8 — Card Dimension + Typography Rebalance
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Equal outer card dimensions | ✅ | RepositoryCard and DeveloperCard both use `CARD_BASE_DIMENSIONS` (`min-h-[24rem]` + shared responsive widths) |
+| Developer content sizing | ✅ | Larger avatar (`w-32 h-32`) and larger text to reduce visual emptiness |
+| Repository typography on large screens | ✅ | Title/body/meta/button text scales up at `sm`/`lg`, improving readability in wide cards while preserving mobile sizing |
+| Repository description baseline | ✅ | `line-clamp-4` with fixed visual block height for consistent card rhythm |
+| Responsive check (manual fallback) | ✅ | User-verified screenshots at desktop and mobile show no layout break |
+| Playwright MCP session | ⚠️ | `browser_navigate` and `browser_resize` aborted; used manual localhost verification + lint checks for this iteration |
+
+### HT.9 — Repository Typography + Tilt Retune (manual verify)
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Repository text presence | ✅ | Title/link emphasis, star/meta visibility, and CTA text weight increased to avoid empty feel on large cards |
+| Responsive behavior | ✅ | Mobile still fits cleanly; typography gains are weighted toward larger breakpoints |
+| Hover profile update | ✅ | RepositoryCard now uses stronger luminance/soft-light hover-tilt parameters with shadow enabled |
+| Manual screenshots | ✅ | User-provided desktop/mobile screenshots confirm layout remains intact |
+
 ---
 
 ## Deviations Log
@@ -152,6 +172,8 @@
 | HT | CSS element selectors instead of class selectors on hover-tilt | React 18 sets className as `classname` attribute on web components — classes don't apply |
 | HT | data-gradient attrs + CSS attr selectors for custom gradients | Inline style on web component causes `setProperty` crash in React 18 |
 | HT | Theme shifted from near-black navy to gentle grey | User request: make shadows/effects visible, match hover-tilt site aesthetic |
+| HT.8 | Playwright MCP fallback to manual verification for this pass | MCP browser actions aborted in-session; validated visually via localhost screenshots and lint/type checks |
+| HT.9 | Repository hover profile diverges from earlier `data-gradient=luminance-beam` pattern | Intentional visual tuning for stronger, clearer repo-card presence |
 | dialog.tsx | `DialogOverlay` + `DialogContent` converted to `React.forwardRef` | shadcn scaffolds React 19-style plain functions; React 18 requires forwardRef for Radix Slot/Presence ref passing |
 
 ---
@@ -271,6 +293,28 @@ fix(ui): convert DialogOverlay and DialogContent to forwardRef for React 18 comp
 ```
 Files changed:
 - `src/components/ui/dialog.tsx` — `DialogOverlay` and `DialogContent` converted from plain functions to `React.forwardRef` with `.displayName`. Eliminates "Function components cannot be given refs" warning thrown by Radix UI's Slot/Presence mechanism on every contributors modal open.
+
+### UI Tuning Commit — ⬜ Pending
+```
+refactor(ui): unify card dimensions and strengthen responsive card typography
+```
+Files changed:
+- `src/lib/card-styles.ts` — shared base width and dimensions constants for card parity
+- `src/components/DeveloperCard.tsx` — larger avatar and text sizing while keeping shared card dimensions
+- `src/components/RepositoryCard.tsx` — stronger responsive typography and 4-line description baseline
+- `.ai-docs/ARCHITECTURE.md` — updated typography/card specs
+- `.ai-docs/TASKS.md` — added HT.7/HT.8 tracking entries
+- `.ai-docs/PROGRESS.md` — added QA/deviation notes and pending commit entry
+
+### UI Tuning Commit (retune) — ⬜ Pending
+```
+refactor(ui): retune repository card typography and hover profile for better desktop presence
+```
+Files changed:
+- `src/components/RepositoryCard.tsx` — typography/weight refinements and updated hover-tilt parameters
+- `.ai-docs/ARCHITECTURE.md` — synchronized RepositoryCard spec and typography wording
+- `.ai-docs/TASKS.md` — added HT.9 tracking row
+- `.ai-docs/PROGRESS.md` — added HT.9 status, QA notes, and deviation entry
 
 ### Phase 3 Commit — ⬜ Pending
 ```
