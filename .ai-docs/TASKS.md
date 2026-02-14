@@ -71,6 +71,21 @@
 
 ---
 
+## Tooling Notes
+
+### Playwright MCP — Getting it to work
+If `browser_navigate` fails with **"Opening in existing browser session" → immediate exit**, the Playwright MCP Chrome profile cache is stale/locked.
+
+**Fix:** Delete the stale profile directory and retry:
+```bash
+rm -rf ~/Library/Caches/ms-playwright/mcp-chrome-*
+```
+Then call `browser_install` once, then `browser_navigate` again — it will launch a fresh Chrome instance.
+
+**Screenshots** go in `.playwright-mcp/` (not project root).
+
+---
+
 ## Phase 3: Polish & QA
 
 | # | Task | Role | Deps | Key Details |

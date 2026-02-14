@@ -125,8 +125,15 @@
 | Card clipping | ✅ | Fixed — padding trick prevents overflow cut |
 | Custom gradients applied | ✅ | data-gradient attrs set, CSS vars computed correctly |
 | Contributors modal | ✅ | Opens, shows data, closes — unaffected by changes |
-| Console errors | ✅ | Zero new errors (only pre-existing Radix ref warning) |
+| Console errors | ✅ | Zero new errors (pre-existing Radix ref warning — fixed in subsequent bug fix task) |
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
+### Bug Fix — Radix Dialog `forwardRef` (Contributors Modal)
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Console error on modal open | ✅ Fixed | `Function components cannot be given refs` — `DialogOverlay` and `DialogContent` were plain function components (shadcn React 19 style) but project runs React 18 |
+| Fix applied | ✅ | Converted `DialogOverlay` + `DialogContent` to `React.forwardRef` + `.displayName` in `src/components/ui/dialog.tsx` |
+| Playwright re-verify | ✅ | Clicked View Contributors — 0 console errors |
 
 ---
 
@@ -145,6 +152,7 @@
 | HT | CSS element selectors instead of class selectors on hover-tilt | React 18 sets className as `classname` attribute on web components — classes don't apply |
 | HT | data-gradient attrs + CSS attr selectors for custom gradients | Inline style on web component causes `setProperty` crash in React 18 |
 | HT | Theme shifted from near-black navy to gentle grey | User request: make shadows/effects visible, match hover-tilt site aesthetic |
+| dialog.tsx | `DialogOverlay` + `DialogContent` converted to `React.forwardRef` | shadcn scaffolds React 19-style plain functions; React 18 requires forwardRef for Radix Slot/Presence ref passing |
 
 ---
 
@@ -256,6 +264,13 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — updated theme, component specs, tech stack
 - `.ai-docs/PROGRESS.md` — added hover-tilt entries + commit log
 - `.ai-docs/TASKS.md` — added hover-tilt task section
+
+### Bug Fix Commit — ✅
+```
+fix(ui): convert DialogOverlay and DialogContent to forwardRef for React 18 compatibility
+```
+Files changed:
+- `src/components/ui/dialog.tsx` — `DialogOverlay` and `DialogContent` converted from plain functions to `React.forwardRef` with `.displayName`. Eliminates "Function components cannot be given refs" warning thrown by Radix UI's Slot/Presence mechanism on every contributors modal open.
 
 ### Phase 3 Commit — ⬜ Pending
 ```
