@@ -10,7 +10,6 @@ interface DeveloperCardProps {
 export function DeveloperCard({ developer }: DeveloperCardProps) {
   return (
     <hover-tilt
-      data-gradient="aurora-sweep"
       tilt-factor="0.4"
       scale-factor="1.05"
       glare-intensity="0.4"

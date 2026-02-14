@@ -169,37 +169,69 @@ hover-tilt::part(tilt) {
   border-radius: var(--radius-xl);
 }
 
-/* idle resting shadow — visible depth before hover */
+
 hover-tilt [data-slot="card"] {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
   box-shadow:
     0 2px 8px hsl(222 20% 8% / 0.5),
     0 1px 3px hsl(222 20% 8% / 0.3);
 }
 
+hover-tilt [data-slot="card"]::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  mix-blend-mode: screen;
+  filter: saturate(1.15) contrast(1.05);
+  transition: opacity 0.3s ease, transform 0.5s ease;
+  transform: translate3d(0, 0, 0) rotate(0deg) scale(1.05);
+  background:
+    radial-gradient(
+      circle at calc(var(--gradient-x, 50%)) calc(var(--gradient-y, 50%)),
+      hsl(186 100% 78% / 0.55) 0%,
+      hsl(267 100% 80% / 0.35) 24%,
+      hsl(326 100% 78% / 0.28) 42%,
+      transparent 68%
+    ),
+    conic-gradient(
+      from calc(var(--hover-tilt-angle, 0deg) * -0.7) at 50% 50%,
+      hsl(190 100% 78% / 0.35),
+      hsl(245 100% 76% / 0.28),
+      hsl(320 100% 78% / 0.3),
+      hsl(190 100% 78% / 0.35)
+    );
+}
+
 hover-tilt:hover [data-slot="card"] {
   border-color: hsl(217.2 91.2% 59.8% / 0.5);
-  box-shadow: none; /* let hover-tilt shadow take over */
+  box-shadow: none; 
+  filter: saturate(1.1);
 }
 
-/* ── custom gradient effects ── */
-
-/* Luminance beam — warm gold sweep for repository cards */
-hover-tilt[data-gradient="luminance-beam"] {
-  --hover-tilt-custom-gradient: linear-gradient(
-    120deg,
-    rgb(0 0 0 / 0) calc((var(--gradient-x, 50%) / 2 + var(--gradient-y, 50%) / 2) - 60%),
-    rgb(249 218 173 / var(--hover-tilt-glare-intensity, 1)) calc((var(--gradient-x, 50%) / 2 + var(--gradient-y, 50%) / 2)),
-    rgb(0 0 0 / 0) calc((var(--gradient-x, 50%) / 2 + var(--gradient-y, 50%) / 2) + 60%)
-  );
+hover-tilt:hover [data-slot="card"]::before {
+  opacity: calc(var(--hover-tilt-opacity, 0) * 0.75 + 0.08);
+  transform: translate3d(
+      calc((var(--gradient-x, 50%) - 50%) * 0.05),
+      calc((var(--gradient-y, 50%) - 50%) * 0.05),
+      0
+    )
+    rotate(calc(var(--hover-tilt-angle, 0deg) * 0.12))
+    scale(1.1);
+  animation: holographic-shimmer 1.8s linear infinite;
 }
 
-/* Aurora sweep — cyan conic rotation for developer cards */
-hover-tilt[data-gradient="aurora-sweep"] {
-  --hover-tilt-custom-gradient: conic-gradient(
-    from var(--hover-tilt-angle, 0deg) at center center,
-    rgba(255, 255, 255, calc(var(--hover-tilt-glare-intensity, 1) * 0.9)),
-    rgba(6, 182, 212, calc(var(--hover-tilt-glare-intensity, 1) * 0.7)),
-    rgba(255, 255, 255, calc(var(--hover-tilt-glare-intensity, 1) * 0.9))
-  );
+
+@keyframes holographic-shimmer {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 14% -10%, -20% 16%;
+  }
 }

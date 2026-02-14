@@ -5,7 +5,7 @@
 | Endpoint | Purpose | Refetch |
 |----------|---------|---------|
 | `GET /search/repositories?q=language:javascript&sort=stars&order=desc&per_page=10` | Top 10 JS repos | 10s interval |
-| `GET /repos/{owner}/{repo}/contributors?per_page=10` | Repo contributors (modal, 10 per page) | On-demand (modal open) |
+| `GET /repos/{owner}/{repo}/contributors` | Repo contributors | On-demand (modal open) |
 
 **Developers page** — derived from the same top 10 JS repos query (no separate endpoint). Both pages share the same TanStack Query cache via `queryKey: ['repositories']`, so only one API call is made:
 - `owner.login` → developer name
