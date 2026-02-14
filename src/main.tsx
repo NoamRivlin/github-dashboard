@@ -23,7 +23,7 @@ const persister = createAsyncStoragePersister({
 
 const router = createRouter({
   routeTree,
-  defaultPreload: "intent",
+  defaultPreload: "viewport",
 })
 
 declare module "@tanstack/react-router" {
