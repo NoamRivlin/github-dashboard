@@ -1,18 +1,28 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { fetchRepositories } from "@/api/github"
 import { RateLimitError } from "@/api/client"
+import {
+  QUERY_KEYS,
+  REPOS_REFETCH_INTERVAL,
+  REPOS_STALE_TIME,
+  MAX_RETRY_COUNT,
+} from "@/lib/constants"
 
 export function useRepositories() {
-  return useQuery({
-    queryKey: ["repositories"],
+  const query = useQuery({
+    queryKey: QUERY_KEYS.repositories,
+    // signal is used to abort the request if the component is unmounted or the query is cancelled
     queryFn: ({ signal }) => fetchRepositories(signal),
-    refetchInterval: 10_000,
-    // Stop polling when the browser tab is not focused.
-    // Polling resumes automatically when the user returns to the tab
+    refetchInterval: REPOS_REFETCH_INTERVAL,
     refetchIntervalInBackground: false,
-    staleTime: 10_000,
+    staleTime: REPOS_STALE_TIME,
     placeholderData: keepPreviousData,
     retry: (failureCount, error) =>
-      error instanceof RateLimitError ? false : failureCount < 2,
+      error instanceof RateLimitError ? false : failureCount < MAX_RETRY_COUNT,
   })
+
+  return {
+    ...query,
+    isRateLimited: query.error instanceof RateLimitError,
+  }
 }

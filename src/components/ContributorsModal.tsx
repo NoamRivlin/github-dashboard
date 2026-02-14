@@ -2,6 +2,8 @@ import { Users } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useContributors } from "@/hooks/queries/useContributors"
+import { SCROLLBAR_VERTICAL } from "@/lib/card-styles"
+import { SKELETON_COUNT } from "@/lib/constants"
 
 interface ContributorsModalProps {
   repoFullName: string | null
@@ -24,9 +26,9 @@ export function ContributorsModal({ repoFullName, onClose }: ContributorsModalPr
           <DialogDescription>{repoFullName}</DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-80 space-y-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+        <div className={`max-h-80 space-y-1 overflow-y-auto ${SCROLLBAR_VERTICAL}`}>
           {showLoading &&
-            Array.from({ length: 5 }).map((_, i) => (
+            Array.from({ length: SKELETON_COUNT }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 py-2">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <Skeleton className="h-4 w-32" />
@@ -45,10 +47,10 @@ export function ContributorsModal({ repoFullName, onClose }: ContributorsModalPr
                 className="flex items-center gap-3 border-b border-border/50 py-2 last:border-0"
               >
                 <img src={contributor.avatar_url} alt={contributor.login} className="h-8 w-8 rounded-full" />
-                <span className="text-sm font-medium truncate max-w-[170px]" title={contributor.login}>
+                <span className="max-w-[170px] truncate text-sm font-medium" title={contributor.login}>
                   {contributor.login}
                 </span>
-                <span className="ml-auto text-xs px-6 text-green-500">
+                <span className="ml-auto px-6 text-xs text-green-500">
                   {contributor.contributions.toLocaleString()} +
                 </span>
               </div>

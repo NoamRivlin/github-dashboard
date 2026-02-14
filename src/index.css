@@ -81,41 +81,6 @@
   --sidebar-ring: hsl(224.3 76.3% 48%);
 }
 
-.dark {
-  --background: hsl(222 18% 20%);
-  --foreground: hsl(210 40% 98%);
-  --card: hsl(222 22% 14%);
-  --card-foreground: hsl(210 40% 98%);
-  --popover: hsl(222 22% 14%);
-  --popover-foreground: hsl(210 40% 98%);
-  --primary: hsl(217.2 91.2% 59.8%);
-  --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(222 15% 24%);
-  --secondary-foreground: hsl(210 40% 98%);
-  --muted: hsl(222 15% 24%);
-  --muted-foreground: hsl(215 15% 60%);
-  --accent: hsl(222 15% 24%);
-  --accent-foreground: hsl(210 40% 98%);
-  --destructive: hsl(0 62.8% 50%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(222 15% 28%);
-  --input: hsl(222 15% 28%);
-  --ring: hsl(224.3 76.3% 48%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
-  --sidebar: hsl(222 22% 14%);
-  --sidebar-foreground: hsl(210 40% 98%);
-  --sidebar-primary: hsl(217.2 91.2% 59.8%);
-  --sidebar-primary-foreground: hsl(210 40% 98%);
-  --sidebar-accent: hsl(222 15% 24%);
-  --sidebar-accent-foreground: hsl(210 40% 98%);
-  --sidebar-border: hsl(222 15% 28%);
-  --sidebar-ring: hsl(224.3 76.3% 48%);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -125,7 +90,6 @@
   }
 }
 
-/* ── hover-tilt card effects ── */
 hover-tilt {
   display: block;
   flex-shrink: 0;
@@ -141,7 +105,6 @@ hover-tilt:hover {
 
 hover-tilt::part(container) {
   border-radius: var(--radius-xl);
-  /* 5-layer neon underglow shadow — blue-tinted, cursor-following */
   --hover-tilt-custom-shadow:
     hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.35 + 0.04)) calc(var(--shadow-x, 0) * 2px)
       calc(var(--shadow-y, 0) * 4px + 1px) 0px 2px,
@@ -186,7 +149,6 @@ hover-tilt [data-slot="card"]::before {
     transform 0.5s ease;
   transform: translate3d(0, 0, 0) rotate(0deg) scale(1.05);
   background:
-  /* gold gradient */
     radial-gradient(
       circle at calc(var(--gradient-x, 50%)) calc(var(--gradient-y, 50%)),
       hsl(50 100% 50% / 0.55) 0%,
@@ -194,7 +156,6 @@ hover-tilt [data-slot="card"]::before {
       hsl(90 100% 50% / 0.28) 42%,
       transparent 68%
     ),
-    /* blue gradient */
     conic-gradient(
         from calc(var(--hover-tilt-angle, 0deg) * -0.7) at 50% 50%,
         hsl(200 100% 50% / 0.35),

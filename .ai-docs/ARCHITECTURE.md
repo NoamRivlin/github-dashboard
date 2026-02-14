@@ -24,11 +24,7 @@
 src/
 ├── api/
 │   ├── client.ts              # Axios instance + interceptors
-│   ├── github.ts              # API service functions
-│   └── mocks/
-│       ├── repositories.ts    # Mock repo data
-│       ├── contributors.ts    # Mock contributor data
-│       └── index.ts           # Mock toggle
+│   └── github.ts              # API service functions
 ├── components/
 │   ├── ui/                    # shadcn primitives (auto-generated)
 │   ├── Navbar.tsx
@@ -40,21 +36,22 @@ src/
 │   └── StatusOverlay.tsx      # Shared loading/error/rate-limit
 ├── hooks/
 │   └── queries/
-│       ├── useRepositories.ts
+│       ├── useRepositories.ts # Exposes isRateLimited
 │       ├── useContributors.ts
 │       └── useQueryTimestamp.ts
 ├── types/
 │   ├── github.ts              # ALL interfaces here
 │   └── hover-tilt.d.ts        # Web Component JSX types
 ├── lib/
-│   └── utils.ts               # cn() helper
+│   ├── utils.ts               # cn() helper
+│   ├── constants.ts           # Query keys, timing, skeleton count
+│   └── card-styles.ts         # Shared Tailwind class constants
 ├── routes/
 │   ├── __root.tsx             # Layout (Navbar + Outlet)
 │   ├── index.tsx              # Redirect → /repositories
 │   ├── repositories.tsx
 │   └── developers.tsx
-├── styles/
-│   └── globals.css
+├── index.css
 └── main.tsx
 ```
 
@@ -87,6 +84,9 @@ src/
 - [ ] Am I fetching data in a component instead of a query hook?
 - [ ] Am I duplicating error/loading UI instead of using `StatusOverlay`?
 - [ ] Am I defining types outside `types/github.ts`?
+- [ ] Am I using magic numbers instead of constants from `lib/constants.ts`?
+- [ ] Am I duplicating Tailwind class strings instead of using `lib/card-styles.ts`?
+- [ ] Am I checking for RateLimitError in a page instead of using `isRateLimited` from `useRepositories()`?
 
 ---
 
@@ -140,7 +140,7 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 **DeveloperCard:** Wrapped in `<hover-tilt>` web component (tilt-factor=0.4, scale-factor=1.05, glare-intensity=0.4, blend-mode=overlay, aurora sweep custom gradient). shadcn Card with shared base dimensions: `min-h-[24rem]` + responsive widths `w-[85vw] sm:w-[350px] lg:w-[420px] xl:w-[480px]` (matches RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold, `min-w-0 truncate`) with larger text, truncated repo name + stars sub-line (`min-w-0 truncate` on text, `shrink-0` on stars), larger centered avatar (`owner.avatar_url`, `rounded-full w-32 h-32`) for stronger visual weight. `CardHeader` has `min-w-0 overflow-hidden`.
 
-**StatusOverlay:** Props: `isLoading, isError, isRateLimited, isEmpty, hasData, onRetry`. Loading → 5 skeleton cards with responsive widths matching card breakpoints, `px-6`. Rate-limited → centered `w-fit` amber banner with hasData-aware message ("Using cached data" vs "Please wait"), always-visible Retry button. Error → `AlertCircle` + Retry, `px-6 py-2`. Empty → friendly message, `px-6 py-12`. Shared by both pages.
+**StatusOverlay:** Props: `isLoading, isError, isRateLimited, isEmpty, hasData, onRetry`. Loading → skeleton cards (count from `SKELETON_COUNT`) with responsive widths from `CARD_BASE_WIDTH`, `px-6`. Rate-limited → centered `w-fit` amber banner with hasData-aware message ("Using cached data" vs "Please wait"), no Retry button (retrying during rate-limit extends the cooldown). Error → `AlertCircle` + Retry, `px-6 py-2`. Empty → friendly message, `px-6 py-12`. Shared by both pages.
 
 ### Icons (Lucide React)
 

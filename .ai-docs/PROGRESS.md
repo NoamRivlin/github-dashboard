@@ -9,9 +9,9 @@
 | 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ✅ Complete | 8/8 |
 | 2: UI Pages | ✅ Complete | 9/9 |
-| 3: Polish & QA | ⬜ Not Started | 0/7 |
+| 3: Polish & QA | 🔄 In Progress | 1/7 |
 
-**Current task:** hover-tilt 3D card effects + grey theme complete. Ready for Phase 3.
+**Current task:** 3.1 Code review complete. Ready for 3.2.
 **Blockers:** None.
 
 ---
@@ -62,7 +62,7 @@
 - [x] HT.9 — Repository visual weight retune: refined repo typography emphasis (title/stars/meta/button), retained responsive/mobile fit, and updated RepositoryCard hover-tilt config (`tilt-factor=0.5`, `scale-factor=1.03`, `glare-intensity=1.3`, `glare-mask-mode=luminance`, `blend-mode=soft-light`, `shadow`)
 
 ## Phase 3: Polish & QA
-- [ ] 3.1 — Code review |
+- [x] 3.1 — Code review | DRY refactor: extracted constants (query keys, timing, skeleton count) to `lib/constants.ts`, shared Tailwind classes (scrollbar, page layout, card dimensions) to `lib/card-styles.ts`. Exposed `isRateLimited` from `useRepositories()` — pages no longer import `RateLimitError`. Removed duplicate `.dark` CSS block, cleaned `api/github.ts` formatting, removed comments from hooks. Updated docs: removed mock references, clarified no-retry on rate-limit rationale.
 - [ ] 3.2 — Rate-limit test |
 - [ ] 3.3 — Responsive check |
 - [ ] 3.4 — Full walkthrough |

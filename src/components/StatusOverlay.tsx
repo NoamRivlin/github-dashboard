@@ -1,6 +1,8 @@
 import { AlertCircle, AlertTriangle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
+import { CARD_BASE_WIDTH } from "@/lib/card-styles"
+import { SKELETON_COUNT } from "@/lib/constants"
 
 interface StatusOverlayProps {
   isLoading: boolean
@@ -15,11 +17,8 @@ export function StatusOverlay({ isLoading, isError, isRateLimited, isEmpty, hasD
   if (isLoading) {
     return (
       <div className="flex gap-4 overflow-hidden px-6">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="w-[85vw] shrink-0 space-y-4 rounded-xl border p-6 sm:w-[350px] lg:w-[420px] xl:w-[480px]"
-          >
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <div key={i} className={`${CARD_BASE_WIDTH} shrink-0 space-y-4 rounded-xl border p-6`}>
             <Skeleton className="h-5 w-3/4" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-2/3" />

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useRepositories } from "@/hooks/queries/useRepositories"
-import { RateLimitError } from "@/api/client"
 import { HorizontalScroll } from "@/components/HorizontalScroll"
 import { DeveloperCard } from "@/components/DeveloperCard"
 import { StatusOverlay } from "@/components/StatusOverlay"
+import { PAGE_LAYOUT } from "@/lib/card-styles"
 import type { Developer } from "@/types/github"
 
 export const Route = createFileRoute("/developers")({
@@ -11,8 +11,7 @@ export const Route = createFileRoute("/developers")({
 })
 
 function DevelopersPage() {
-  const { data, isLoading, isError, error, refetch } = useRepositories()
-  const isRateLimited = error instanceof RateLimitError
+  const { data, isLoading, isError, isRateLimited, refetch } = useRepositories()
 
   const developers: Developer[] =
     data?.items.map((repo) => ({
@@ -23,7 +22,7 @@ function DevelopersPage() {
     })) ?? []
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col justify-center space-y-4">
+    <div className={PAGE_LAYOUT}>
       <StatusOverlay
         isLoading={isLoading}
         isError={isError && !isRateLimited}

@@ -1,15 +1,18 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { fetchContributors } from "@/api/github"
+import {
+  QUERY_KEYS,
+  CONTRIBUTORS_STALE_TIME,
+  CONTRIBUTORS_GC_TIME,
+} from "@/lib/constants"
 
 export function useContributors(repoFullName: string, enabled: boolean) {
   return useQuery({
-    queryKey: ["contributors", repoFullName],
+    queryKey: QUERY_KEYS.contributors(repoFullName),
     queryFn: ({ signal }) => fetchContributors(repoFullName, signal),
     enabled,
-    staleTime: 5 * 60 * 1000,
-    // 30 min — contributor data changes rarely, so keep it cached longer.
-    // Persisted to localStorage alongside repos, surviving refreshes.
-    gcTime: 30 * 60 * 1000,
+    staleTime: CONTRIBUTORS_STALE_TIME,
+    gcTime: CONTRIBUTORS_GC_TIME,
     placeholderData: keepPreviousData,
   })
 }

@@ -28,8 +28,8 @@
 | 1.1 | Define TS interfaces | Architect | 0.6 | `types/github.ts`: Repository, RepositorySearchResponse, Contributor. See `API_STRATEGY.md` |
 | 1.2 | Axios instance | Implementer | 1.1 | `api/client.ts` with baseURL, Accept header, rate-limit interceptor (403 → RateLimitError) |
 | 1.3 | Validate API shapes | Implementer | 1.2 | Make real calls, compare responses to interfaces, fix mismatches (esp. nullable fields) |
-| 1.4 | Mock data | Implementer | 1.3 | `api/mocks/` — realistic data matching validated types exactly. Toggle via `VITE_USE_MOCKS` |
-| 1.5 | API service functions | Implementer | 1.2, 1.4 | `api/github.ts`: `fetchRepositories()`, `fetchContributors(owner, repo)`. Check mock toggle |
+| 1.4 | ~~Mock data~~ | ~~Implementer~~ | ~~1.3~~ | Removed — app uses real API with localStorage persistence as fallback |
+| 1.5 | API service functions | Implementer | 1.2 | `api/github.ts`: `fetchRepositories()`, `fetchContributors(owner, repo)` |
 | 1.6 | Query hooks | Implementer | 1.5 | `useRepositories` (10s refetch, keepPreviousData), `useContributors` (enabled flag, on-demand). **Context7:** verify TanStack Query v5 options |
 | 1.7 | Rate-limit handling | Implementer | 1.6 | No retry on RateLimitError, gcTime keeps stale data, rate-limit status flag for UI |
 | 1.8 | Timestamp hook | Implementer | 1.6 | `useQueryTimestamp` — reads `dataUpdatedAt`, formats for navbar display |
@@ -49,7 +49,7 @@
 | 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count |
 | 2.6 | DeveloperCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), min-w-0 overflow-hidden on CardHeader, truncated login+repo. Large centered avatar. |
 | 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered, hasData prop |
-| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Responsive skeleton widths, hasData-aware rate-limit messaging, always-visible Retry, proper padding on all states. Shared. |
+| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Responsive skeleton widths, hasData-aware rate-limit messaging (no retry — retrying during rate-limit extends cooldown), proper padding on all states. Shared. |
 | 2.9 | Visual verification | ✅ Done | 2.8 | Playwright verified at 1440/375/287/241px. Responsive layout, truncation, error states all correct. |
 
 → **COMMIT → STOP → REVIEW**

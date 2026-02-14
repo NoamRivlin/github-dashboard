@@ -1,14 +1,9 @@
 import apiClient from "@/api/client"
-
-
-
 import type { Contributor, RepositorySearchResponse } from "@/types/github"
 
 export async function fetchRepositories(
   signal?: AbortSignal,
 ): Promise<RepositorySearchResponse> {
-
-
   const { data } = await apiClient.get<RepositorySearchResponse>(
     "/search/repositories",
     {
@@ -29,8 +24,6 @@ export async function fetchContributors(
   repoFullName: string,
   signal?: AbortSignal,
 ): Promise<Contributor[]> {
-
-
   const { data } = await apiClient.get<Contributor[]>(
     `/repos/${repoFullName}/contributors`,
     { signal },

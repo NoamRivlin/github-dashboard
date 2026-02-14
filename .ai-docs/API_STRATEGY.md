@@ -67,21 +67,6 @@ interface Developer {
 }
 ```
 
-### 3. Create Matching Mock Data
-Mocks MUST match real API shape exactly — same fields, same nesting, same nullability:
-```ts
-// api/mocks/repositories.ts — realistic data, 10 entries
-// api/mocks/contributors.ts — realistic data, 10+ entries
-```
-**Why:** When rate-limited, the app switches to mocks seamlessly. Shape mismatch = broken UI.
-
-### 4. Mock Toggle
-```ts
-// api/mocks/index.ts
-export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
-```
-Service functions check this flag and return mocks or call the API.
-
 ---
 
 ## Axios Client
