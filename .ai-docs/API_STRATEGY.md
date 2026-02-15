@@ -78,20 +78,35 @@ const apiClient = axios.create({
   headers: { Accept: 'application/vnd.github.v3+json' },
 });
 
-// Rate-limit interceptor
+// Rate limit budget from response headers, per resource.
+// GitHub tracks "search" (10 req/min) and "core" (60 req/hour) separately.
+export const rateLimitInfo = {
+  search: { remaining: Infinity, limit: 0 },
+  core: { remaining: Infinity, limit: 0 },
+}
+
+// Success interceptor: read x-ratelimit-remaining + x-ratelimit-resource
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 403 &&
-        error.response.headers['x-ratelimit-remaining'] === '0') {
-      const rateLimitError = new Error('GitHub API rate limit exceeded');
-      rateLimitError.name = 'RateLimitError';
-      throw rateLimitError;
+  (response) => {
+    const resource = response.headers['x-ratelimit-resource']
+    if (resource === 'search' || resource === 'core') {
+      rateLimitInfo[resource].remaining = parseInt(headers['x-ratelimit-remaining'])
+      rateLimitInfo[resource].limit = parseInt(headers['x-ratelimit-limit'])
     }
-    throw error;
+    return response
+  },
+  (error) => {
+    // Handle both 403 and 429 (per GitHub docs, rate limits return either status)
+    if ((status === 403 || status === 429) && isRateLimitMessage) {
+      throw new RateLimitError()
+    }
+    throw error
   }
 );
 ```
+
+### ETag / Conditional Requests
+ETags do **NOT** save rate limit for unauthenticated requests. Per GitHub docs: "Making a conditional request does not count against your primary rate limit if a 304 response is returned **and the request was made while correctly authorized with an Authorization header**." Since this project is unauthenticated, ETags provide zero rate limit benefit.
 
 ---
 
@@ -145,6 +160,10 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 - **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators
 - **Focus-only polling** — background tabs make zero API requests. Polling resumes on tab focus
 - **Generous maxAge (20h)** — better to show old data with stale indicators (navbar timestamp + amber warning + overlay message) than no data at all
+- **Rate limit header tracking** — success interceptor reads `x-ratelimit-remaining` and `x-ratelimit-resource` from every response. Stored in a plain `rateLimitInfo` object per resource (`search`, `core`)
+- **429 status code handling** — error interceptor checks both 403 and 429 (per GitHub docs, rate limits can return either)
+- **Approaching-limit warning** — when remaining requests drop to `RATE_LIMIT_WARNING_THRESHOLD` (5), StatusOverlay and ContributorsModal show a subtle "API quota low (X/Y remaining)" banner
+- **ETags not used** — conditional requests only exempt from rate limits when authenticated (per GitHub docs). No benefit for unauthenticated calls
 
 ---
 
@@ -153,12 +172,19 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 | Scenario | What Happens |
 |----------|--------------|
 | Normal | Fresh data every 10s |
-| 403 rate-limited | Query fails → `placeholderData` keeps last good data visible |
+| Approaching limit (remaining ≤ 5) | Subtle amber warning: "API quota low (X/Y requests remaining)" |
+| 403 or 429 rate-limited | Query fails → `placeholderData` keeps last good data visible |
 | Rate-limited + no cache | StatusOverlay shows friendly error |
 | Rate limit clears | Next 10s tick succeeds, UI auto-updates |
 | Tab unfocused | Polling stops completely, zero requests |
 | Tab refocused | Immediate refetch if data is stale |
 | Page refresh | Cached data from localStorage shown instantly, background refetch |
 | Refresh + rate-limited | Persisted data shown, navbar shows last update time, amber warning |
+
+### Rate Limit Budgets (Unauthenticated)
+| Resource | Limit | Used By |
+|----------|-------|---------|
+| `search` | 10 req/min | `/search/repositories` — at 10s polling = 6 req/min (60% usage) |
+| `core` | 60 req/hour | `/repos/*/contributors` — on-demand only |
 
 **Core rule:** User ALWAYS sees data. Old data > no data.

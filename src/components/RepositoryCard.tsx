@@ -1,5 +1,18 @@
-import { Star, GitFork, CircleDot, Scale, ExternalLink, Users } from "lucide-react"
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Star,
+  GitFork,
+  CircleDot,
+  Scale,
+  ExternalLink,
+  Users,
+} from "lucide-react"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CARD_BASE_DIMENSIONS } from "@/lib/card-styles"
 import type { Repository } from "@/types/github"
@@ -9,7 +22,10 @@ interface RepositoryCardProps {
   onViewContributors: (repoFullName: string) => void
 }
 
-export function RepositoryCard({ repository, onViewContributors }: RepositoryCardProps) {
+export function RepositoryCard({
+  repository,
+  onViewContributors,
+}: RepositoryCardProps) {
   return (
     <hover-tilt
       tilt-factor="0.5"
@@ -41,7 +57,10 @@ export function RepositoryCard({ repository, onViewContributors }: RepositoryCar
         </CardHeader>
 
         <CardContent className="flex-1 space-y-3">
-          <p className="min-h-20 line-clamp-4 leading-6 lg:text-base" title={repository.description ?? undefined}>
+          <p
+            className="min-h-20 line-clamp-4 leading-6 lg:text-base"
+            title={repository.description ?? undefined}
+          >
             {repository.description ?? "No description"}
           </p>
 
@@ -64,7 +83,7 @@ export function RepositoryCard({ repository, onViewContributors }: RepositoryCar
         <CardFooter>
           <Button
             variant="outline"
-            className="w-full cursor-pointer font-semibold sm:text-base hover:bg-primary/10 hover:text-primary"
+            className="w-full font-semibold sm:text-base hover:bg-primary/10 hover:text-primary"
             onClick={() => onViewContributors(repository.full_name)}
           >
             <Users className="h-4 w-4" />

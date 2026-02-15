@@ -11,7 +11,6 @@ import {
 export function useRepositories() {
   const query = useQuery({
     queryKey: QUERY_KEYS.repositories,
-    // signal is used to abort the request if the component is unmounted or the query is cancelled
     queryFn: ({ signal }) => fetchRepositories(signal),
     refetchInterval: REPOS_REFETCH_INTERVAL,
     refetchIntervalInBackground: false,

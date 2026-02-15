@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -106,16 +104,21 @@ hover-tilt:hover {
 hover-tilt::part(container) {
   border-radius: var(--radius-xl);
   --hover-tilt-custom-shadow:
-    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.35 + 0.04)) calc(var(--shadow-x, 0) * 2px)
-      calc(var(--shadow-y, 0) * 4px + 1px) 0px 2px,
-    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.25 + 0.03)) calc(var(--shadow-x, 0) * 4px)
-      calc(var(--shadow-y, 0) * 8px + 2px) 0px 4px,
-    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.18 + 0.02)) calc(var(--shadow-x, 0) * 6px)
-      calc(var(--shadow-y, 0) * 12px + 3px) 0px 6px,
-    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.1 + 0.01)) calc(var(--shadow-x, 0) * 8px)
-      calc(var(--shadow-y, 0) * 16px + 4px) 0px 8px,
-    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.05)) calc(var(--shadow-x, 0) * 10px)
-      calc(var(--shadow-y, 0) * 20px + 5px) 0px 10px;
+    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.35 + 0.04))
+      calc(var(--shadow-x, 0) * 2px) calc(var(--shadow-y, 0) * 4px + 1px) 0px
+      2px,
+    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.25 + 0.03))
+      calc(var(--shadow-x, 0) * 4px) calc(var(--shadow-y, 0) * 8px + 2px) 0px
+      4px,
+    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.18 + 0.02))
+      calc(var(--shadow-x, 0) * 6px) calc(var(--shadow-y, 0) * 12px + 3px) 0px
+      6px,
+    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.1 + 0.01))
+      calc(var(--shadow-x, 0) * 8px) calc(var(--shadow-y, 0) * 16px + 4px) 0px
+      8px,
+    hsl(217.2 91.2% 59.8% / calc(var(--hover-tilt-opacity, 0) * 0.05))
+      calc(var(--shadow-x, 0) * 10px) calc(var(--shadow-y, 0) * 20px + 5px) 0px
+      10px;
 }
 
 hover-tilt::part(tilt) {
@@ -157,12 +160,12 @@ hover-tilt [data-slot="card"]::before {
       transparent 68%
     ),
     conic-gradient(
-        from calc(var(--hover-tilt-angle, 0deg) * -0.7) at 50% 50%,
-        hsl(200 100% 50% / 0.35),
-        hsl(250 100% 50% / 0.28),
-        hsl(300 100% 50% / 0.3),
-        hsl(200 100% 50% / 0.35)
-      );
+      from calc(var(--hover-tilt-angle, 0deg) * -0.7) at 50% 50%,
+      hsl(200 100% 50% / 0.35),
+      hsl(250 100% 50% / 0.28),
+      hsl(300 100% 50% / 0.3),
+      hsl(200 100% 50% / 0.35)
+    );
 }
 
 hover-tilt:hover [data-slot="card"] {
@@ -173,7 +176,11 @@ hover-tilt:hover [data-slot="card"] {
 
 hover-tilt:hover [data-slot="card"]::before {
   opacity: calc(var(--hover-tilt-opacity, 0) * 0.75 + 0.08);
-  transform: translate3d(calc((var(--gradient-x, 50%) - 50%) * 0.05), calc((var(--gradient-y, 50%) - 50%) * 0.05), 0)
+  transform: translate3d(
+      calc((var(--gradient-x, 50%) - 50%) * 0.05),
+      calc((var(--gradient-y, 50%) - 50%) * 0.05),
+      0
+    )
     rotate(calc(var(--hover-tilt-angle, 0deg) * 0.12)) scale(1.1);
   animation: holographic-shimmer 1.8s linear infinite;
 }

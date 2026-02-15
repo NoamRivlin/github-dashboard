@@ -31,12 +31,19 @@ function RepositoriesPage() {
       {repos.length > 0 && (
         <HorizontalScroll>
           {repos.map((repo) => (
-            <RepositoryCard key={repo.id} repository={repo} onViewContributors={setSelectedRepo} />
+            <RepositoryCard
+              key={repo.id}
+              repository={repo}
+              onViewContributors={setSelectedRepo}
+            />
           ))}
         </HorizontalScroll>
       )}
 
-      <ContributorsModal repoFullName={selectedRepo} onClose={() => setSelectedRepo(null)} />
+      <ContributorsModal
+        repoFullName={selectedRepo}
+        onClose={() => setSelectedRepo(null)}
+      />
     </div>
   )
 }

@@ -11,7 +11,7 @@
 | 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | 🔄 In Progress | 6/7 |
 
-**Current task:** 3.6 complete (contributors modal enhancements). Ready for 3.7.
+**Current task:** 3.7 in progress (rate limit optimization). Ready for final cleanup.
 **Blockers:** None.
 
 ---
@@ -68,7 +68,7 @@
 - [x] 3.4 — Full walkthrough | Automated via Playwright E2E: navigation (redirect, nav links, active state), repo cards (all fields, null handling), contributors modal (open/data/close), developers cards (name/repo/stars/avatar), horizontal scroll
 - [x] 3.5 — Console + network audit | Automated via Playwright E2E: correct API endpoint + params, contributors lazy-loaded on modal open, query deduplication across pages, retry behavior on 500
 - [x] 3.6 — Contributors modal enhancements | Virtualized list (`@tanstack/react-virtual`), total count header with 80+ cap indicator, rate-limit/error handling with retry, capped fetch to 80 per request (`CONTRIBUTORS_PER_PAGE`)
-- [ ] 3.7 — Final cleanup |
+- [x] 3.7 — Rate limit optimization | Proactive rate limit awareness: read headers from all responses (success+error), handle 403+429, parse retry-after/x-ratelimit-reset, separate search/core bucket tracking, adaptive polling (10s normal, ms-until-reset when limited), free /rate_limit startup check, canMakeRequest gate for contributors queryFn, UI countdown in StatusOverlay and ContributorsModal, RateLimitError enhanced with resetAt field. ETags confirmed useless for unauthenticated (per GitHub docs).
 
 ---
 
@@ -179,6 +179,24 @@
 | `responsive.spec.ts` | 4 | ✅ | Desktop 1440, tablet 768, mobile 375, modal at mobile |
 | `api.spec.ts` | 8 | ✅ | Endpoint params, lazy contributor fetch, correct repo URL, rate-limit (header + message), non-rate-limit 403, query dedup, 500 retries |
 
+### Task 3.7 — Rate Limit Optimization
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Success headers tracked | ✅ | Axios success interceptor reads x-ratelimit-remaining/reset/resource from every 200 response |
+| Error headers tracked | ✅ | Error interceptor reads headers from 403/429 responses too |
+| 429 status handled | ✅ | Both 403 and 429 detected as rate limit (per GitHub docs) |
+| retry-after parsed | ✅ | Stored as retryAfter (epoch ms) in rate limit state, used by getNextFetchDelay |
+| x-ratelimit-reset parsed | ✅ | Stored as resetAt (epoch ms), used for countdown and polling delay |
+| Separate search/core tracking | ✅ | Each resource has independent remaining/limit/resetAt/retryAfter |
+| Dynamic refetchInterval | ✅ | Returns 10s normally, ms-until-reset when rate limited. Never returns false. |
+| Contributors pre-check | ✅ | canMakeRequest('core') in queryFn prevents wasted 403. Throws RateLimitError locally with resetAt. |
+| Free startup check | ✅ | checkRateLimitStatus() calls /rate_limit (free per docs) and seeds state via seedRateLimitState |
+| StatusOverlay countdown | ✅ | Shows "Next refresh in Xs" or "Next refresh at HH:MM" when search is rate limited |
+| ContributorsModal countdown | ✅ | Shows "Retry available in Xs" + Retry button when core is rate limited |
+| RateLimitError.resetAt | ✅ | Enhanced with resetAt field (fallback: now + 60s) |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+| Linter | ✅ | Zero errors across all modified files |
+
 ---
 
 ## Deviations Log
@@ -201,6 +219,8 @@
 | dialog.tsx | `DialogOverlay` + `DialogContent` converted to `React.forwardRef` | shadcn scaffolds React 19-style plain functions; React 18 requires forwardRef for Radix Slot/Presence ref passing |
 | 2.5/3.6 | Contributors fetch capped at 80 (no pagination loop) | Pagination loop drained rate limit fast (multiple requests per modal open); single request with `per_page=80` is sufficient |
 | 2.5/3.6 | `VirtualContributorList` extracted as sub-component | Virtualizer must remount with dialog to avoid stale scroll state; sub-component unmounts with `DialogContent` |
+| 3.7 | Contributors rate limit gate in queryFn instead of `enabled` prop | Using `canMakeRequest('core')` in queryFn instead of gating `enabled` avoids reactivity issues where `enabled: false` would show a perpetual loading state. The queryFn approach properly enters error state with RateLimitError. |
+| 3.7 | ETags not implemented | Confirmed via GitHub docs: conditional requests only exempt from rate limits when authenticated. Zero benefit for unauthenticated calls. |
 
 ---
 
@@ -373,6 +393,36 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — updated tech stack, folder structure, ContributorsModal spec, useContributors note
 - `.ai-docs/TASKS.md` — updated task 2.5 description
 - `.ai-docs/PROGRESS.md` — added 3.6 status, QA report, deviations, commit log
+
+### Rate Limit Optimization Commit — ⬜ Pending
+```
+feat(api): proactive rate limit awareness with smart polling pauses and UI countdown
+
+- Read rate limit headers from every response (success + error), not just 403s
+- Handle both 403 and 429 status codes (per GitHub docs)
+- Parse retry-after and x-ratelimit-reset headers per docs priority order
+- Separate tracking for search (10 req/min) and core (60 req/hour) buckets
+- Dynamic refetchInterval: 10s normally, ms-until-reset when rate limited (never stops)
+- canMakeRequest() pre-check in contributors queryFn prevents wasted 403 requests
+- Free /rate_limit endpoint check on startup seeds budget before first real call
+- UI countdown: StatusOverlay shows "Next refresh in 45s", ContributorsModal shows "Retry available at 14:30"
+- RateLimitError enhanced with resetAt field for downstream timing
+- ETags confirmed useless for unauthenticated (per GitHub docs)
+
+Tasks: 3.7
+```
+Files changed:
+- `src/api/rate-limit-state.ts` — **new**: singleton rate limit state manager + useRateLimitState hook + useCountdown hook (one file)
+- `src/api/client.ts` — enhanced interceptors: success handler reads headers, error handler adds 429 + retry-after + secondary rate limit detection, RateLimitError has resetAt
+- `src/api/github.ts` — added checkRateLimitStatus() (free /rate_limit endpoint)
+- `src/hooks/queries/useRepositories.ts` — dynamic refetchInterval via getNextFetchDelay('search', 10_000)
+- `src/hooks/queries/useContributors.ts` — canMakeRequest('core') pre-check in queryFn
+- `src/components/StatusOverlay.tsx` — countdown display using useRateLimitState('search') + useCountdown
+- `src/components/ContributorsModal.tsx` — countdown + Retry button using useRateLimitState('core') + useCountdown
+- `src/lib/constants.ts` — added FALLBACK_RESET_DELAY
+- `src/main.tsx` — checkRateLimitStatus() call on startup
+- `.ai-docs/API_STRATEGY.md` — updated rate limit strategy, budgets, error handling priority
+- `.ai-docs/PROGRESS.md` — added 3.7 status, QA report, commit log
 
 ### Phase 3 Commit — ⬜ Pending
 ```

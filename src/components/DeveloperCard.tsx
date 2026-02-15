@@ -20,7 +20,10 @@ export function DeveloperCard({ developer }: DeveloperCardProps) {
     >
       <Card className={CARD_BASE_DIMENSIONS}>
         <CardHeader className="min-w-0 overflow-hidden">
-          <CardTitle className="min-w-0 truncate text-xl font-bold" title={developer.login}>
+          <CardTitle
+            className="min-w-0 truncate text-xl font-bold"
+            title={developer.login}
+          >
             {developer.login}
           </CardTitle>
           <div className="flex min-w-0 items-center gap-2 text-base text-muted-foreground">
@@ -35,7 +38,12 @@ export function DeveloperCard({ developer }: DeveloperCardProps) {
         </CardHeader>
 
         <CardContent className="flex flex-1 items-center justify-center">
-          <img src={developer.avatar_url} alt={developer.login} className="h-32 w-32 rounded-full" loading="lazy" />
+          <img
+            src={developer.avatar_url}
+            alt={developer.login}
+            className="h-32 w-32 rounded-full"
+            loading="lazy"
+          />
         </CardContent>
       </Card>
     </hover-tilt>
