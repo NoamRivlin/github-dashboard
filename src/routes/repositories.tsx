@@ -4,6 +4,7 @@ import { useRepositories } from "@/hooks/queries/useRepositories"
 import { HorizontalScroll } from "@/components/HorizontalScroll"
 import { RepositoryCard } from "@/components/RepositoryCard"
 import { ContributorsModal } from "@/components/ContributorsModal"
+import { CardSkeletons } from "@/components/CardSkeleton"
 import { StatusOverlay } from "@/components/StatusOverlay"
 import { PAGE_LAYOUT } from "@/lib/card-styles"
 
@@ -17,10 +18,17 @@ function RepositoriesPage() {
 
   const repos = data?.items ?? []
 
+  if (isLoading) {
+    return (
+      <div className={PAGE_LAYOUT}>
+        <CardSkeletons />
+      </div>
+    )
+  }
+
   return (
     <div className={PAGE_LAYOUT}>
       <StatusOverlay
-        isLoading={isLoading}
         isError={isError && !isRateLimited}
         isRateLimited={isRateLimited}
         isEmpty={repos.length === 0}

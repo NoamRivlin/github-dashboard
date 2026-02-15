@@ -1,6 +1,6 @@
 import apiClient from "@/api/client"
 import type { Contributor, RepositorySearchResponse } from "@/types/github"
-import { CONTRIBUTORS_PER_PAGE } from "@/lib/constants"
+import { CONTRIBUTORS_PER_PAGE, REPOS_PER_PAGE } from "@/lib/constants"
 
 export async function fetchRepositories(
   signal?: AbortSignal,
@@ -12,7 +12,7 @@ export async function fetchRepositories(
         q: "language:javascript",
         sort: "stars",
         order: "desc",
-        per_page: 10,
+        per_page: REPOS_PER_PAGE,
       },
       signal,
     },

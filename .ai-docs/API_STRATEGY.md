@@ -13,7 +13,7 @@
 - `stargazers_count` → stars in that repo
 - `owner.avatar_url` → developer profile image
 - Same developer may appear more than once if they own multiple top repos
-- List is ordered by stars (desc), with client-side sort in `fetchRepositories()` for stable ordering across refetches
+- List is ordered by stars (desc) via the API `sort=stars&order=desc` parameter
 
 ---
 
@@ -78,28 +78,19 @@ const apiClient = axios.create({
   headers: { Accept: 'application/vnd.github.v3+json' },
 });
 
-// Rate limit budget from response headers, per resource.
-// GitHub tracks "search" (10 req/min) and "core" (60 req/hour) separately.
-export const rateLimitInfo = {
-  search: { remaining: Infinity, limit: 0 },
-  core: { remaining: Infinity, limit: 0 },
-}
-
-// Success interceptor: read x-ratelimit-remaining + x-ratelimit-resource
+// Error-only interceptor: detect rate limit responses and throw RateLimitError
 apiClient.interceptors.response.use(
-  (response) => {
-    const resource = response.headers['x-ratelimit-resource']
-    if (resource === 'search' || resource === 'core') {
-      rateLimitInfo[resource].remaining = parseInt(headers['x-ratelimit-remaining'])
-      rateLimitInfo[resource].limit = parseInt(headers['x-ratelimit-limit'])
-    }
-    return response
-  },
+  (response) => response,
   (error) => {
+    const status = error.response?.status
+    const message = error.response?.data?.message ?? ''
+
     // Handle both 403 and 429 (per GitHub docs, rate limits return either status)
-    if ((status === 403 || status === 429) && isRateLimitMessage) {
-      throw new RateLimitError()
-    }
+    const isRateLimited =
+      (status === 403 || status === 429) &&
+      message.toLowerCase().includes('rate limit')
+
+    if (isRateLimited) throw new RateLimitError()
     throw error
   }
 );
@@ -116,12 +107,12 @@ ETags do **NOT** save rate limit for unauthenticated requests. Per GitHub docs: 
 ```ts
 {
   queryKey: ['repositories'],
-  queryFn: fetchRepositories,
-  refetchInterval: 10_000,
-  refetchIntervalInBackground: false,   // Stop polling when tab is unfocused
-  staleTime: 10_000,
-  placeholderData: keepPreviousData,    // Show old data during refetch
-  retry: (count, error) => error instanceof RateLimitError ? false : count < 2,
+  queryFn: ({ signal }) => fetchRepositories(signal),
+  refetchInterval: REPOS_REFETCH_INTERVAL,    // 10s fixed
+  refetchIntervalInBackground: false,          // Stop polling when tab is unfocused
+  staleTime: REPOS_STALE_TIME,                // 10s
+  placeholderData: keepPreviousData,           // Show old data during refetch
+  retry: false,                                // No retries (rate limit or otherwise)
 }
 ```
 
@@ -129,12 +120,12 @@ ETags do **NOT** save rate limit for unauthenticated requests. Per GitHub docs: 
 ```ts
 {
   queryKey: ['contributors', repoFullName],
-  queryFn: () => fetchContributors(repoFullName),
+  queryFn: ({ signal }) => fetchContributors(repoFullName, signal),
   enabled,                              // Only when modal is open
-  staleTime: 5 * 60 * 1000,
-  gcTime: 30 * 60 * 1000,              // 30 min — contributor data changes rarely
+  staleTime: CONTRIBUTORS_STALE_TIME,   // 5 min
+  gcTime: CONTRIBUTORS_GC_TIME,         // 30 min — contributor data changes rarely
   placeholderData: keepPreviousData,
-  retry: (count, error) => error instanceof RateLimitError ? false : count < 2,
+  retry: false,                          // No retries
 }
 ```
 
@@ -155,14 +146,14 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 - **Single repos query shared** between Repositories page and Developers page (zero extra calls)
 - **Contributors cached per repo** — same modal opened twice doesn't re-fetch within staleTime. `isPlaceholderData` used in UI to show loading skeletons instead of stale data from a different repo
 - **Contributors capped at 80** — single request with `per_page=80` (constant `CONTRIBUTORS_PER_PAGE`). Avoids pagination loops that drain rate limit. Modal header shows `80+` when response hits the cap
-- **refetchInterval is global** — doesn't reset on navigation between pages
+- **refetchInterval is fixed 10s** — doesn't reset on navigation between pages
+- **retry: false on all queries** — simplified from conditional retry. Rate-limited queries fail immediately, `placeholderData` keeps last good data visible
 - **Minimize calls:** 1 polled endpoint + on-demand contributors only
 - **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators
 - **Focus-only polling** — background tabs make zero API requests. Polling resumes on tab focus
 - **Generous maxAge (20h)** — better to show old data with stale indicators (navbar timestamp + amber warning + overlay message) than no data at all
-- **Rate limit header tracking** — success interceptor reads `x-ratelimit-remaining` and `x-ratelimit-resource` from every response. Stored in a plain `rateLimitInfo` object per resource (`search`, `core`)
-- **429 status code handling** — error interceptor checks both 403 and 429 (per GitHub docs, rate limits can return either)
-- **Approaching-limit warning** — when remaining requests drop to `RATE_LIMIT_WARNING_THRESHOLD` (5), StatusOverlay and ContributorsModal show a subtle "API quota low (X/Y remaining)" banner
+- **Rate limit detection** — error interceptor checks both 403 and 429 status + "rate limit" in message body. Throws `RateLimitError` which hooks expose via `isRateLimited` boolean
+- **isRateLimited derived in hooks** — `query.error instanceof RateLimitError` computed in both `useRepositories` and `useContributors`, pages never import `RateLimitError` directly
 - **ETags not used** — conditional requests only exempt from rate limits when authenticated (per GitHub docs). No benefit for unauthenticated calls
 
 ---
@@ -172,8 +163,7 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 | Scenario | What Happens |
 |----------|--------------|
 | Normal | Fresh data every 10s |
-| Approaching limit (remaining ≤ 5) | Subtle amber warning: "API quota low (X/Y requests remaining)" |
-| 403 or 429 rate-limited | Query fails → `placeholderData` keeps last good data visible |
+| 403 or 429 rate-limited | Query fails → `placeholderData` keeps last good data visible, amber banner shown |
 | Rate-limited + no cache | StatusOverlay shows friendly error |
 | Rate limit clears | Next 10s tick succeeds, UI auto-updates |
 | Tab unfocused | Polling stops completely, zero requests |

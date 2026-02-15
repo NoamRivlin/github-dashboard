@@ -49,7 +49,7 @@
 | 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count. Virtualized list (`@tanstack/react-virtual`), total count header (80+ cap indicator), rate-limit/error handling with retry |
 | 2.6 | DeveloperCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), min-w-0 overflow-hidden on CardHeader, truncated login+repo. Large centered avatar. |
 | 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered, hasData prop |
-| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Responsive skeleton widths, hasData-aware rate-limit messaging (no retry — retrying during rate-limit extends cooldown), proper padding on all states. Shared. |
+| 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Error/rate-limit/empty status banners only (loading skeletons moved to `CardSkeletons` component, rendered by each page). hasData-aware rate-limit messaging, proper padding on all states. Shared. |
 | 2.9 | Visual verification | ✅ Done | 2.8 | Playwright verified at 1440/375/287/241px. Responsive layout, truncation, error states all correct. |
 
 → **COMMIT → STOP → REVIEW**

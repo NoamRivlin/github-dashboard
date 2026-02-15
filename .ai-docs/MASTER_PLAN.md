@@ -149,7 +149,7 @@
 | 2.5 | ContributorsModal (fetches on open, shadcn Dialog) | `ContributorsModal.tsx` |
 | 2.6 | DeveloperCard (avatar, name, repo, stars) | `DeveloperCard.tsx` |
 | 2.7 | Developers page with horizontal scroll (derived from repo data) | `developers.tsx` |
-| 2.8 | Shared StatusOverlay (loading/error/rate-limit/empty) | `StatusOverlay.tsx` |
+| 2.8 | Shared StatusOverlay (error/rate-limit/empty) + CardSkeletons (loading) | `StatusOverlay.tsx`, `CardSkeleton.tsx` |
 | 2.9 | Visual verification (Playwright MCP) | QA pass |
 
 → COMMIT → REVIEW

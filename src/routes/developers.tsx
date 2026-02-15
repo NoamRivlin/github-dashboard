@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useRepositories } from "@/hooks/queries/useRepositories"
 import { HorizontalScroll } from "@/components/HorizontalScroll"
 import { DeveloperCard } from "@/components/DeveloperCard"
+import { CardSkeletons } from "@/components/CardSkeleton"
 import { StatusOverlay } from "@/components/StatusOverlay"
 import { PAGE_LAYOUT } from "@/lib/card-styles"
 import type { Developer } from "@/types/github"
@@ -21,10 +22,17 @@ function DevelopersPage() {
       repoStars: repo.stargazers_count,
     })) ?? []
 
+  if (isLoading) {
+    return (
+      <div className={PAGE_LAYOUT}>
+        <CardSkeletons />
+      </div>
+    )
+  }
+
   return (
     <div className={PAGE_LAYOUT}>
       <StatusOverlay
-        isLoading={isLoading}
         isError={isError && !isRateLimited}
         isRateLimited={isRateLimited}
         isEmpty={developers.length === 0}
