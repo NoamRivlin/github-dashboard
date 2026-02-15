@@ -1,9 +1,15 @@
-import { Users } from "lucide-react"
+import { useRef } from "react"
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { AlertCircle, AlertTriangle, Users } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 import { useContributors } from "@/hooks/queries/useContributors"
 import { SCROLLBAR_VERTICAL } from "@/lib/card-styles"
-import { SKELETON_COUNT } from "@/lib/constants"
+import { SKELETON_COUNT, CONTRIBUTORS_PER_PAGE } from "@/lib/constants"
+import type { Contributor } from "@/types/github"
+
+const ROW_HEIGHT = 40
 
 interface ContributorsModalProps {
   repoFullName: string | null
@@ -11,7 +17,8 @@ interface ContributorsModalProps {
 }
 
 export function ContributorsModal({ repoFullName, onClose }: ContributorsModalProps) {
-  const { data, isLoading, isError, isPlaceholderData } = useContributors(repoFullName ?? "", !!repoFullName)
+  const { data, isLoading, isError, isRateLimited, isPlaceholderData, refetch } =
+    useContributors(repoFullName ?? "", !!repoFullName)
 
   const showLoading = isLoading || isPlaceholderData
 
@@ -22,41 +29,91 @@ export function ContributorsModal({ repoFullName, onClose }: ContributorsModalPr
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
             Contributors
+            {!showLoading && data && (
+              <span className="text-xs font-normal text-muted-foreground">
+                ({data.length >= CONTRIBUTORS_PER_PAGE ? `${data.length}+` : data.length})
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription>{repoFullName}</DialogDescription>
         </DialogHeader>
 
-        <div className={`max-h-80 space-y-1 overflow-y-auto ${SCROLLBAR_VERTICAL}`}>
-          {showLoading &&
-            Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+        {showLoading && (
+          <div className="space-y-1">
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 py-2">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="ml-auto h-4 w-16" />
               </div>
             ))}
+          </div>
+        )}
 
-          {!showLoading && isError && (
-            <p className="py-4 text-center text-sm text-destructive">Failed to load contributors.</p>
-          )}
+        {!showLoading && isRateLimited && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <span className="text-sm text-amber-500">
+              {data
+                ? "Rate limit reached, please wait a moment, using cached data."
+                : "Rate limit reached, please wait a moment."}
+            </span>
+          </div>
+        )}
 
-          {!showLoading &&
-            data?.map((contributor) => (
-              <div
-                key={contributor.id}
-                className="flex items-center gap-3 border-b border-border/50 py-2 last:border-0"
-              >
-                <img src={contributor.avatar_url} alt={contributor.login} className="h-8 w-8 rounded-full" />
-                <span className="max-w-[170px] truncate text-sm font-medium" title={contributor.login}>
-                  {contributor.login}
-                </span>
-                <span className="ml-auto px-6 text-xs text-green-500">
-                  {contributor.contributions.toLocaleString()} +
-                </span>
-              </div>
-            ))}
-        </div>
+        {!showLoading && isError && !isRateLimited && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <AlertCircle className="h-10 w-10 text-destructive" />
+            <p className="text-sm text-muted-foreground">Failed to load contributors.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {!showLoading && data && data.length > 0 && (
+          <VirtualContributorList data={data} />
+        )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function VirtualContributorList({ data }: { data: Contributor[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 5,
+  })
+
+  return (
+    <div ref={scrollRef} className={`max-h-80 overflow-y-auto ${SCROLLBAR_VERTICAL}`}>
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const contributor = data[virtualRow.index]
+          return (
+            <div
+              key={contributor.id}
+              className="absolute left-0 top-0 flex w-full items-center gap-3 border-b border-border/50 py-2 last:border-0"
+              style={{
+                height: virtualRow.size,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <img src={contributor.avatar_url} alt={contributor.login} className="h-8 w-8 rounded-full" />
+              <span className="max-w-[170px] truncate text-sm font-medium" title={contributor.login}>
+                {contributor.login}
+              </span>
+              <span className="ml-auto px-6 text-xs text-green-500">
+                {contributor.contributions.toLocaleString()} +
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }

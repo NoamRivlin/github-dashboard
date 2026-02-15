@@ -9,9 +9,9 @@
 | 0: Scaffold | ✅ Complete | 6/6 |
 | 1: API Layer | ✅ Complete | 8/8 |
 | 2: UI Pages | ✅ Complete | 9/9 |
-| 3: Polish & QA | 🔄 In Progress | 5/7 |
+| 3: Polish & QA | 🔄 In Progress | 6/7 |
 
-**Current task:** 3.2–3.5 complete (automated E2E). Ready for 3.6.
+**Current task:** 3.6 complete (contributors modal enhancements). Ready for 3.7.
 **Blockers:** None.
 
 ---
@@ -67,7 +67,7 @@
 - [x] 3.3 — Responsive check | Automated via Playwright E2E: 1440/768/375px viewports, mobile modal usability, no body overflow
 - [x] 3.4 — Full walkthrough | Automated via Playwright E2E: navigation (redirect, nav links, active state), repo cards (all fields, null handling), contributors modal (open/data/close), developers cards (name/repo/stars/avatar), horizontal scroll
 - [x] 3.5 — Console + network audit | Automated via Playwright E2E: correct API endpoint + params, contributors lazy-loaded on modal open, query deduplication across pages, retry behavior on 500
-- [ ] 3.6 — Performance |
+- [x] 3.6 — Contributors modal enhancements | Virtualized list (`@tanstack/react-virtual`), total count header with 80+ cap indicator, rate-limit/error handling with retry, capped fetch to 80 per request (`CONTRIBUTORS_PER_PAGE`)
 - [ ] 3.7 — Final cleanup |
 
 ---
@@ -155,6 +155,18 @@
 | Hover profile update | ✅ | RepositoryCard now uses stronger luminance/soft-light hover-tilt parameters with shadow enabled |
 | Manual screenshots | ✅ | User-provided desktop/mobile screenshots confirm layout remains intact |
 
+### Task 3.6 — Contributors Modal Enhancements
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Virtualized list renders | ✅ | `@tanstack/react-virtual` with `useVirtualizer`, only visible rows in DOM, overscan of 5 |
+| Total count header | ✅ | Shows exact count when < 80, shows `80+` when hitting the per-page cap |
+| Rate-limit handling | ✅ | Amber warning banner with cached-data-aware message, no retry on `RateLimitError` |
+| Generic error + retry | ✅ | `AlertCircle` icon + "Failed to load contributors." + Retry button calling `refetch()` |
+| Reopen modal shows data | ✅ | `VirtualContributorList` sub-component remounts with dialog, fresh virtualizer each open |
+| Single API request | ✅ | Fetch capped at `per_page=80`, no pagination loop, conserves rate limit |
+| E2E test for count | ✅ | New test verifies `(3)` count appears for 3 mock contributors |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
 ### Tasks 3.2–3.5 — Automated E2E Test Suite (Playwright)
 33 tests, 6 files, all passing consistently (~7–9s). API mocked via `page.route()`.
 
@@ -187,6 +199,8 @@
 | HT.8 | Playwright MCP fallback to manual verification for this pass | MCP browser actions aborted in-session; validated visually via localhost screenshots and lint/type checks |
 | HT.9 | Repository hover profile diverges from earlier `data-gradient=luminance-beam` pattern | Intentional visual tuning for stronger, clearer repo-card presence |
 | dialog.tsx | `DialogOverlay` + `DialogContent` converted to `React.forwardRef` | shadcn scaffolds React 19-style plain functions; React 18 requires forwardRef for Radix Slot/Presence ref passing |
+| 2.5/3.6 | Contributors fetch capped at 80 (no pagination loop) | Pagination loop drained rate limit fast (multiple requests per modal open); single request with `per_page=80` is sufficient |
+| 2.5/3.6 | `VirtualContributorList` extracted as sub-component | Virtualizer must remount with dialog to avoid stale scroll state; sub-component unmounts with `DialogContent` |
 
 ---
 
@@ -343,6 +357,22 @@ Files changed:
 - `e2e/responsive.spec.ts` — new: 4 tests (1440/768/375px, mobile modal)
 - `e2e/api.spec.ts` — new: 8 tests (endpoint params, lazy fetch, dedup, rate-limit detection, retries)
 - `package.json` — added `e2e` and `e2e:ui` scripts
+
+### Contributors Enhancement Commit — ⬜ Pending
+```
+feat(contributors): virtualized list, total count, rate-limit handling, capped fetch
+```
+Files changed:
+- `package.json` — added `@tanstack/react-virtual`
+- `src/lib/constants.ts` — added `CONTRIBUTORS_PER_PAGE = 80`
+- `src/api/github.ts` — replaced pagination loop with single `per_page=80` request
+- `src/hooks/queries/useContributors.ts` — added `RateLimitError` no-retry logic, exposes `isRateLimited`
+- `src/components/ContributorsModal.tsx` — virtualized list (`VirtualContributorList` sub-component), total count header with `80+` cap indicator, rate-limit amber banner, generic error + Retry button
+- `e2e/api.spec.ts` — added test for contributor count display
+- `.ai-docs/API_STRATEGY.md` — updated contributor endpoint, query config, key decisions
+- `.ai-docs/ARCHITECTURE.md` — updated tech stack, folder structure, ContributorsModal spec, useContributors note
+- `.ai-docs/TASKS.md` — updated task 2.5 description
+- `.ai-docs/PROGRESS.md` — added 3.6 status, QA report, deviations, commit log
 
 ### Phase 3 Commit — ⬜ Pending
 ```

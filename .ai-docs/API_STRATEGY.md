@@ -5,7 +5,7 @@
 | Endpoint | Purpose | Refetch |
 |----------|---------|---------|
 | `GET /search/repositories?q=language:javascript&sort=stars&order=desc&per_page=10` | Top 10 JS repos | 10s interval |
-| `GET /repos/{owner}/{repo}/contributors` | Repo contributors | On-demand (modal open) |
+| `GET /repos/{owner}/{repo}/contributors?per_page=80` | Repo contributors (capped at 80) | On-demand (modal open) |
 
 **Developers page** — derived from the same top 10 JS repos query (no separate endpoint). Both pages share the same TanStack Query cache via `queryKey: ['repositories']`, so only one API call is made:
 - `owner.login` → developer name
@@ -119,6 +119,7 @@ apiClient.interceptors.response.use(
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,              // 30 min — contributor data changes rarely
   placeholderData: keepPreviousData,
+  retry: (count, error) => error instanceof RateLimitError ? false : count < 2,
 }
 ```
 
@@ -138,6 +139,7 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 ### Key Decisions
 - **Single repos query shared** between Repositories page and Developers page (zero extra calls)
 - **Contributors cached per repo** — same modal opened twice doesn't re-fetch within staleTime. `isPlaceholderData` used in UI to show loading skeletons instead of stale data from a different repo
+- **Contributors capped at 80** — single request with `per_page=80` (constant `CONTRIBUTORS_PER_PAGE`). Avoids pagination loops that drain rate limit. Modal header shows `80+` when response hits the cap
 - **refetchInterval is global** — doesn't reset on navigation between pages
 - **Minimize calls:** 1 polled endpoint + on-demand contributors only
 - **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators

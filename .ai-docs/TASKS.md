@@ -46,7 +46,7 @@
 | 2.2 | RepositoryCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), stacked detail rows, name+stars flex-col→sm:flex-row, min-w-0 truncation. Hover border-primary/50 |
 | 2.3 | HorizontalScroll | ✅ Done | — | overflow-x-auto, snap scroll, items-stretch, thin dark scrollbar, inner px-6 alignment |
 | 2.4 | Repositories page | ✅ Done | 2.1–2.3 | StatusOverlay (hasData) + HorizontalScroll + RepositoryCards + ContributorsModal. Vertically centered. |
-| 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count |
+| 2.5 | ContributorsModal | ✅ Done | 2.4 | shadcn Dialog, isPlaceholderData for loading on repo switch, per-repo cache, dark scrollbar, truncated names, green contribution count. Virtualized list (`@tanstack/react-virtual`), total count header (80+ cap indicator), rate-limit/error handling with retry |
 | 2.6 | DeveloperCard | ✅ Done | 1.6 | Responsive (85vw/350/420/480px), min-w-0 overflow-hidden on CardHeader, truncated login+repo. Large centered avatar. |
 | 2.7 | Developers page | ✅ Done | 2.1, 2.6 | useRepositories dedup, Developer[] mapping, HorizontalScroll, vertically centered, hasData prop |
 | 2.8 | StatusOverlay | ✅ Done | 2.4, 2.7 | Responsive skeleton widths, hasData-aware rate-limit messaging (no retry — retrying during rate-limit extends cooldown), proper padding on all states. Shared. |

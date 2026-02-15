@@ -12,6 +12,7 @@
 | UI Components | shadcn/ui (dark theme) |
 | Icons | Lucide React |
 | Styling | Tailwind CSS v4 |
+| Virtualization | @tanstack/react-virtual (virtualized lists) |
 | Card Effects | hover-tilt (Web Component) |
 | Build | Vite |
 | State Mgmt | None — TanStack Query cache is sufficient |
@@ -37,14 +38,14 @@ src/
 ├── hooks/
 │   └── queries/
 │       ├── useRepositories.ts # Exposes isRateLimited
-│       ├── useContributors.ts
+│       ├── useContributors.ts # Exposes isRateLimited, no-retry on rate-limit
 │       └── useQueryTimestamp.ts
 ├── types/
 │   ├── github.ts              # ALL interfaces here
 │   └── hover-tilt.d.ts        # Web Component JSX types
 ├── lib/
 │   ├── utils.ts               # cn() helper
-│   ├── constants.ts           # Query keys, timing, skeleton count
+│   ├── constants.ts           # Query keys, timing, skeleton count, contributors per-page cap
 │   └── card-styles.ts         # Shared Tailwind class constants
 ├── routes/
 │   ├── __root.tsx             # Layout (Navbar + Outlet)
@@ -136,7 +137,7 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 **HorizontalScroll:** Outer: `overflow-x-auto`, thin dark custom scrollbar (`bg-muted` track, `bg-muted-foreground/30` thumb), `-my-10 py-10 pb-14` padding trick to prevent hover-tilt clipping. Inner: `flex items-stretch gap-4 px-6` — px-6 aligns cards with navbar content. Snap scroll.
 
-**ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
+**ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Virtualized list via `@tanstack/react-virtual` (`useVirtualizer`) — only visible rows rendered in DOM, keeping performance stable even with 80 contributors. Extracted `VirtualContributorList` sub-component ensures the virtualizer remounts cleanly each time the dialog opens. Header shows total count with `80+` indicator when the result hits the `CONTRIBUTORS_PER_PAGE` cap. Rate-limit handling mirrors `StatusOverlay`: amber warning banner (with cached-data-aware messaging) on `RateLimitError`, generic error state with `AlertCircle` + Retry button on other failures. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
 
 **DeveloperCard:** Wrapped in `<hover-tilt>` web component (tilt-factor=0.4, scale-factor=1.05, glare-intensity=0.4, blend-mode=overlay, aurora sweep custom gradient). shadcn Card with shared base dimensions: `min-h-[24rem]` + responsive widths `w-[85vw] sm:w-[350px] lg:w-[420px] xl:w-[480px]` (matches RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold, `min-w-0 truncate`) with larger text, truncated repo name + stars sub-line (`min-w-0 truncate` on text, `shrink-0` on stars), larger centered avatar (`owner.avatar_url`, `rounded-full w-32 h-32`) for stronger visual weight. `CardHeader` has `min-w-0 overflow-hidden`.
 

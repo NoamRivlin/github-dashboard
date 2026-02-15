@@ -58,6 +58,28 @@ test.describe("API Layer", () => {
     expect(requests.filter((u) => u.includes("/contributors")).length).toBeGreaterThanOrEqual(1)
   })
 
+  test("contributors modal displays total contributor count", async ({ page }) => {
+    await page.route("**/api.github.com/search/repositories*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_REPOS),
+      }),
+    )
+    await page.route("**/api.github.com/repos/**/contributors*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_CONTRIBUTORS),
+      }),
+    )
+
+    await page.goto("/repositories")
+    await page.getByRole("button", { name: "View Contributors" }).first().click()
+    await expect(page.getByRole("dialog")).toBeVisible()
+    await expect(page.getByText(`(${MOCK_CONTRIBUTORS.length})`)).toBeVisible()
+  })
+
   test("contributors request uses correct repo full_name", async ({ page }) => {
     const contributorUrls: string[] = []
     await page.route("**/api.github.com/search/repositories*", (route) =>

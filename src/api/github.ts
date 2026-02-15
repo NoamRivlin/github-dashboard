@@ -1,5 +1,6 @@
 import apiClient from "@/api/client"
 import type { Contributor, RepositorySearchResponse } from "@/types/github"
+import { CONTRIBUTORS_PER_PAGE } from "@/lib/constants"
 
 export async function fetchRepositories(
   signal?: AbortSignal,
@@ -26,7 +27,7 @@ export async function fetchContributors(
 ): Promise<Contributor[]> {
   const { data } = await apiClient.get<Contributor[]>(
     `/repos/${repoFullName}/contributors`,
-    { signal },
+    { params: { per_page: CONTRIBUTORS_PER_PAGE }, signal },
   )
   return data
 }
