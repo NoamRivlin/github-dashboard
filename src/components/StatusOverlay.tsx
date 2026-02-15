@@ -10,7 +10,6 @@ interface StatusOverlayProps {
   isError: boolean
   isRateLimited: boolean
   isEmpty: boolean
-  hasData: boolean
   onRetry: () => void
 }
 
@@ -19,7 +18,6 @@ export function StatusOverlay({
   isError,
   isRateLimited,
   isEmpty,
-  hasData,
   onRetry,
 }: StatusOverlayProps) {
   if (isLoading) {
@@ -51,7 +49,7 @@ export function StatusOverlay({
         <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
           <span className="text-sm text-amber-500">
-            {hasData
+            {!isEmpty
               ? "Rate limit reached, please wait a moment, using cached data."
               : "Rate limit reached, please wait a moment."}
           </span>
@@ -82,10 +80,10 @@ export function StatusOverlay({
 
   // Approaching rate limit — show a subtle warning above the cards
   const { remaining, limit } = rateLimitInfo.search
-  if (hasData && remaining <= RATE_LIMIT_WARNING_THRESHOLD && remaining > 0) {
+  if (!isEmpty && remaining <= RATE_LIMIT_WARNING_THRESHOLD && remaining > 0) {
     return (
       <div className="flex justify-center px-6">
-        <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5">
+        <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
           <AlertTriangle className="h-3 w-3 shrink-0 text-amber-500/70" />
           <span className="text-xs text-amber-500/70">
             API quota low ({remaining}/{limit} search requests remaining in the next minute)

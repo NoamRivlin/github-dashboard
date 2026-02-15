@@ -24,7 +24,6 @@ function RepositoriesPage() {
         isError={isError && !isRateLimited}
         isRateLimited={isRateLimited}
         isEmpty={!isLoading && !isError && repos.length === 0}
-        hasData={repos.length > 0}
         onRetry={() => refetch()}
       />
 
