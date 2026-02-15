@@ -11,13 +11,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { useContributors } from "@/hooks/queries/useContributors"
-import { rateLimitInfo } from "@/api/client"
 import { SCROLLBAR_VERTICAL } from "@/lib/card-styles"
-import {
-  SKELETON_COUNT,
-  CONTRIBUTORS_PER_PAGE,
-  RATE_LIMIT_WARNING_THRESHOLD,
-} from "@/lib/constants"
+import { SKELETON_COUNT, CONTRIBUTORS_PER_PAGE } from "@/lib/constants"
 import type { Contributor } from "@/types/github"
 
 const ROW_HEIGHT = 40
@@ -41,10 +36,6 @@ export function ContributorsModal({
   } = useContributors(repoFullName ?? "", !!repoFullName)
 
   const showLoading = isLoading || isPlaceholderData
-
-  const { remaining, limit } = rateLimitInfo.core
-  const isApproachingLimit =
-    remaining <= RATE_LIMIT_WARNING_THRESHOLD && remaining > 0
 
   return (
     <Dialog open={!!repoFullName} onOpenChange={(open) => !open && onClose()}>
@@ -98,15 +89,6 @@ export function ContributorsModal({
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
-          </div>
-        )}
-
-        {!showLoading && !isRateLimited && !isError && isApproachingLimit && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5">
-            <AlertTriangle className="h-3 w-3 shrink-0 text-amber-500/70" />
-            <span className="text-xs text-amber-500/70">
-              API quota low ({remaining}/{limit} core requests remaining in the next hour)
-            </span>
           </div>
         )}
 
