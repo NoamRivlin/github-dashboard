@@ -18,8 +18,12 @@ export function useContributors(repoFullName: string, enabled: boolean) {
     retry: false,
   })
 
+  const rateLimitError =
+    query.error instanceof RateLimitError ? query.error : null
+
   return {
     ...query,
-    isRateLimited: query.error instanceof RateLimitError,
+    isRateLimited: rateLimitError !== null,
+    isSecondaryRateLimit: rateLimitError?.isSecondary ?? false,
   }
 }

@@ -31,6 +31,7 @@ export function ContributorsModal({
     isLoading,
     isError,
     isRateLimited,
+    isSecondaryRateLimit,
     isPlaceholderData,
     refetch,
   } = useContributors(repoFullName ?? "", !!repoFullName)
@@ -73,9 +74,10 @@ export function ContributorsModal({
           <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
             <span className="text-sm text-amber-500">
-              {data
-                ? "Rate limit reached, please wait a moment, using cached data."
+              {isSecondaryRateLimit
+                ? "Secondary rate limit hit, please wait."
                 : "Rate limit reached, please wait a moment."}
+              {data ? " Using cached data." : ""}
             </span>
           </div>
         )}

@@ -14,6 +14,3 @@ export const CONTRIBUTORS_PER_PAGE = 80
 export const REPOS_PER_PAGE = 10
 
 export const SKELETON_COUNT = 5
-
-
-export const RATE_LIMIT_WARNING_THRESHOLD = 5

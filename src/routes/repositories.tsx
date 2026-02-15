@@ -13,7 +13,16 @@ export const Route = createFileRoute("/repositories")({
 })
 
 function RepositoriesPage() {
-  const { data, isLoading, isError, isRateLimited, refetch } = useRepositories()
+  const {
+    data,
+    isLoading,
+    isError,
+    isRateLimited,
+    isSecondaryRateLimit,
+    rateLimitRemaining,
+    rateLimitTotal,
+    refetch,
+  } = useRepositories()
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
 
   const repos = data?.items ?? []
@@ -31,8 +40,11 @@ function RepositoriesPage() {
       <StatusOverlay
         isError={isError && !isRateLimited}
         isRateLimited={isRateLimited}
+        isSecondaryRateLimit={isSecondaryRateLimit}
         isEmpty={repos.length === 0}
         onRetry={() => refetch()}
+        rateLimitRemaining={rateLimitRemaining}
+        rateLimitTotal={rateLimitTotal}
       />
 
       {repos.length > 0 && (
