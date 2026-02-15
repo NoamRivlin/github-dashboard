@@ -15,6 +15,7 @@ export function useContributors(repoFullName: string, enabled: boolean) {
     staleTime: CONTRIBUTORS_STALE_TIME,
     gcTime: CONTRIBUTORS_GC_TIME,
     placeholderData: keepPreviousData,
+    retry: false,
   })
 
   return {

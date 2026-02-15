@@ -27,7 +27,7 @@ function DevelopersPage() {
         isLoading={isLoading}
         isError={isError && !isRateLimited}
         isRateLimited={isRateLimited}
-        isEmpty={!isLoading && !isError && developers.length === 0}
+        isEmpty={developers.length === 0}
         onRetry={() => refetch()}
       />
 

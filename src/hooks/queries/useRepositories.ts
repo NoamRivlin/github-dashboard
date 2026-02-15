@@ -15,6 +15,7 @@ export function useRepositories() {
     refetchIntervalInBackground: false,
     staleTime: REPOS_STALE_TIME,
     placeholderData: keepPreviousData,
+    retry: false,
   })
 
   return {
