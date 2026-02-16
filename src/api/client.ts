@@ -1,7 +1,5 @@
 import axios from "axios"
 
-// --- Rate Limit Error (primary vs secondary) ---
-
 export class RateLimitError extends Error {
   isSecondary: boolean
 
@@ -16,19 +14,14 @@ export class RateLimitError extends Error {
   }
 }
 
-// --- Rate limit info from response headers ---
-
 export let rateLimitRemaining: number | null = null
 export let rateLimitTotal: number | null = null
-
-// --- Axios Client ---
 
 const apiClient = axios.create({
   baseURL: "https://api.github.com",
   headers: { Accept: "application/vnd.github.v3+json" },
 })
 
-// Read rate limit headers from every successful response
 apiClient.interceptors.response.use((response) => {
   const remaining = response.headers["x-ratelimit-remaining"]
   const limit = response.headers["x-ratelimit-limit"]
@@ -39,7 +32,6 @@ apiClient.interceptors.response.use((response) => {
   return response
 })
 
-// Detect rate limit errors (403 / 429)
 apiClient.interceptors.response.use(undefined, (error) => {
   const status = error.response?.status
   const message: string = error.response?.data?.message ?? ""

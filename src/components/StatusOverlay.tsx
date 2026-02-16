@@ -24,7 +24,6 @@ export function StatusOverlay({
     ? "Secondary rate limit hit, please wait."
     : "Rate limit reached, please wait a moment."
 
-  // Full-page states (no cached data)
   if (isRateLimited && isEmpty) {
     return (
       <div className="flex justify-center px-6">
@@ -56,7 +55,6 @@ export function StatusOverlay({
     )
   }
 
-  // Banner states (cached data is showing)
   const showRemainingInfo =
     !isRateLimited && rateLimitRemaining != null && rateLimitTotal != null
 
