@@ -11,8 +11,7 @@ export function useRepositories() {
   const query = useQuery({
     queryKey: QUERY_KEYS.repositories,
     queryFn: ({ signal }) => fetchRepositories(signal),
-    // refetchInterval: REPOS_REFETCH_INTERVAL,
-    refetchInterval: 100,
+    refetchInterval: REPOS_REFETCH_INTERVAL,
     refetchIntervalInBackground: false,
     staleTime: REPOS_STALE_TIME,
     placeholderData: keepPreviousData,
