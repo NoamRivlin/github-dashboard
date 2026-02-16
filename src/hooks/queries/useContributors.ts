@@ -1,6 +1,6 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { fetchContributors } from "@/api/github"
-import { RateLimitError, rateLimits } from "@/api/client"
+import { useRateLimitStatus } from "@/hooks/queries/useRateLimitStatus"
 import {
   QUERY_KEYS,
   CONTRIBUTORS_STALE_TIME,
@@ -18,14 +18,13 @@ export function useContributors(repoFullName: string, enabled: boolean) {
     retry: false,
   })
 
-  const rateLimitError =
-    query.error instanceof RateLimitError ? query.error : null
+  const status = useRateLimitStatus(query.error, "core")
 
   return {
-    ...query,
-    isRateLimited: rateLimitError !== null,
-    isSecondaryRateLimit: rateLimitError?.isSecondary ?? false,
-    rateLimitRemaining: rateLimits.core?.remaining ?? null,
-    rateLimitTotal: rateLimits.core?.limit ?? null,
+    data: query.data,
+    isLoading: query.isLoading,
+    isPlaceholderData: query.isPlaceholderData,
+    refetch: query.refetch,
+    status,
   }
 }

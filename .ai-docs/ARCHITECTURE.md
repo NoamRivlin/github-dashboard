@@ -38,11 +38,12 @@ src/
 │   └── StatusOverlay.tsx      # Shared error/rate-limit/empty status banners
 ├── hooks/
 │   └── queries/
-│       ├── useRepositories.ts # Exposes isRateLimited
-│       ├── useContributors.ts # Exposes isRateLimited, no-retry on rate-limit
+│       ├── useRepositories.ts  # Returns { data, isLoading, refetch, dataUpdatedAt, status: QueryStatus }
+│       ├── useContributors.ts  # Returns { data, isLoading, isPlaceholderData, refetch, status: QueryStatus }
+│       ├── useRateLimitStatus.ts # Shared helper: extracts QueryStatus from query error + rateLimits
 │       └── useQueryTimestamp.ts
 ├── types/
-│   ├── github.ts              # ALL interfaces here
+│   ├── github.ts              # ALL interfaces here (includes QueryStatus)
 │   └── hover-tilt.d.ts        # Web Component JSX types
 ├── lib/
 │   ├── utils.ts               # cn() helper
@@ -65,8 +66,9 @@ src/
 
 - ALL HTTP through `api/client.ts` — never import axios elsewhere
 - ALL server data through query hooks — components never call API directly
-- ALL types in `types/github.ts` — no inline type definitions
-- Pages are thin — compose components + wire hooks
+- ALL types in `types/github.ts` — no inline type definitions (includes `QueryStatus` for shared error/rate-limit state)
+- Hooks return explicit named fields (not `...query` spread) + grouped `status: QueryStatus` object
+- Pages are thin — compose components + wire hooks, pass `status` object to StatusOverlay (no prop drilling individual status fields)
 - Both pages share the same `useRepositories()` query (TanStack Query deduplicates via queryKey — one API call serves both)
 - Developers page derives Developer[] by mapping each repo to its owner
 
@@ -89,7 +91,9 @@ src/
 - [ ] Am I defining types outside `types/github.ts`?
 - [ ] Am I using magic numbers instead of constants from `lib/constants.ts`?
 - [ ] Am I duplicating Tailwind class strings instead of using `lib/card-styles.ts`?
-- [ ] Am I checking for RateLimitError in a page instead of using `isRateLimited` from `useRepositories()`?
+- [ ] Am I checking for RateLimitError in a page instead of using `status.isRateLimited` from the hook?
+- [ ] Am I duplicating rate-limit extraction logic instead of using `useRateLimitStatus()`?
+- [ ] Am I passing individual status props instead of the `QueryStatus` object?
 
 ---
 
@@ -139,17 +143,17 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 **HorizontalScroll:** Outer: `overflow-x-auto`, thin dark custom scrollbar (`bg-muted` track, `bg-muted-foreground/30` thumb), `-my-10 py-10 pb-14` padding trick to prevent hover-tilt clipping. Inner: `flex items-stretch gap-4 px-6` — px-6 aligns cards with navbar content. Snap scroll.
 
-**ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Virtualized list via `@tanstack/react-virtual` (`useVirtualizer`) — only visible rows rendered in DOM, keeping performance stable even with 80 contributors. Extracted `VirtualContributorList` sub-component ensures the virtualizer remounts cleanly each time the dialog opens. Header shows total count with `80+` indicator when the result hits the `CONTRIBUTORS_PER_PAGE` cap. Rate-limit handling mirrors `StatusOverlay`: amber warning banner (with cached-data-aware messaging) on `RateLimitError`, generic error state with `AlertCircle` + Retry button on other failures. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
+**ContributorsModal:** shadcn Dialog, controlled via `repoFullName` state (open when non-null). Uses `isPlaceholderData` from TanStack Query to show loading skeletons when switching repos (prevents stale data flicker from `keepPreviousData`). Each repo's contributors cached independently via queryKey. Virtualized list via `@tanstack/react-virtual` (`useVirtualizer`) — only visible rows rendered in DOM, keeping performance stable even with 80 contributors. Extracted `VirtualContributorList` sub-component ensures the virtualizer remounts cleanly each time the dialog opens. Header shows total count with `80+` indicator when the result hits the `CONTRIBUTORS_PER_PAGE` cap. Reuses `StatusOverlay` with `compact` prop for all status banners (rate-limit, error, API info) — no duplicated status rendering. Dark scrollbar matching HorizontalScroll style. Avatar `rounded-full w-8 h-8`, truncated names, green contribution count.
 
 **DeveloperCard:** Wrapped in `<hover-tilt>` web component (tilt-factor=0.4, scale-factor=1.05, glare-intensity=0.4, blend-mode=overlay, aurora sweep custom gradient). shadcn Card with shared base dimensions: `min-h-[24rem]` + responsive widths `w-[85vw] sm:w-[350px] lg:w-[420px] xl:w-[480px]` (matches RepositoryCard). Data derived from Repository (owner = developer). Shows: truncated developer name (`owner.login`, bold, `min-w-0 truncate`) with larger text, truncated repo name + stars sub-line (`min-w-0 truncate` on text, `shrink-0` on stars), larger centered avatar (`owner.avatar_url`, `rounded-full w-32 h-32`) for stronger visual weight. `CardHeader` has `min-w-0 overflow-hidden`.
 
 **CardSkeletons:** Renders `SKELETON_COUNT` placeholder skeleton cards using `CARD_BASE_DIMENSIONS`. Each page handles its own loading state by rendering `<CardSkeletons />` in an early return, keeping loading presentation co-located with the page layout.
 
-**StatusOverlay:** Props: `isError, isRateLimited, isEmpty, onRetry`. Does NOT handle loading state (pages own that via `CardSkeletons`). Rate-limited + empty → centered `w-fit` amber banner ("Please wait"). Rate-limited + has data → amber banner ("Using cached data"). Error + empty → `AlertCircle` + Retry. Error + has data → destructive banner + refresh button. Empty → friendly message. Shared by both pages.
+**StatusOverlay:** Props: `status: QueryStatus, isEmpty, onRetry, compact?`. Does NOT handle loading state (pages own that via `CardSkeletons`). Rate-limited + empty → centered `w-fit` amber banner (primary: "Rate limit reached", secondary: "Secondary rate limit hit"). Rate-limited + has data → amber banner with "Using cached data" suffix. Error + empty → `AlertCircle` + Retry. Error + has data → destructive banner + refresh button. No error + has rate limit info → blue info banner ("API calls: X/Y remaining") with `Info` icon. Empty → friendly message. `compact` prop removes wrapper padding/min-height for use inside dialogs. Internal `StatusBanner` helper DRYs the repeated banner markup via variant prop (`warning`/`error`/`info`). Shared by both pages and ContributorsModal.
 
 ### Icons (Lucide React)
 
-Stars→`Star`, Forks→`GitFork`, Issues→`CircleDot`, License→`Scale`, Link→`ExternalLink`, Time→`Clock`, Contributors→`Users`, Error→`AlertCircle`, RateLimit→`AlertTriangle`, Logo→`Code2`. Default: `w-4 h-4 text-muted-foreground`. Stars: `text-yellow-500`.
+Stars→`Star`, Forks→`GitFork`, Issues→`CircleDot`, License→`Scale`, Link→`ExternalLink`, Time→`Clock`, Contributors→`Users`, Error→`AlertCircle`, RateLimit→`AlertTriangle`, Info→`Info`, Logo→`Code2`. Default: `w-4 h-4 text-muted-foreground`. Stars: `text-yellow-500`.
 
 ---
 

@@ -32,3 +32,11 @@ export interface Developer {
   repoName: string
   repoStars: number
 }
+
+export interface QueryStatus {
+  isError: boolean
+  isRateLimited: boolean
+  isSecondaryRateLimit: boolean
+  rateLimitRemaining: number | null
+  rateLimitTotal: number | null
+}

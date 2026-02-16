@@ -1,25 +1,29 @@
+import type { ReactNode } from "react"
 import { AlertCircle, AlertTriangle, Info, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { QueryStatus } from "@/types/github"
 
 interface StatusOverlayProps {
-  isError: boolean
-  isRateLimited: boolean
-  isSecondaryRateLimit: boolean
+  status: QueryStatus
   isEmpty: boolean
   onRetry: () => void
-  rateLimitRemaining?: number | null
-  rateLimitTotal?: number | null
+  compact?: boolean
 }
 
 export function StatusOverlay({
-  isError,
-  isRateLimited,
-  isSecondaryRateLimit,
+  status,
   isEmpty,
   onRetry,
-  rateLimitRemaining,
-  rateLimitTotal,
+  compact,
 }: StatusOverlayProps) {
+  const {
+    isError,
+    isRateLimited,
+    isSecondaryRateLimit,
+    rateLimitRemaining,
+    rateLimitTotal,
+  } = status
+
   const rateLimitMessage = isSecondaryRateLimit
     ? "Secondary rate limit hit, please wait."
     : "Rate limit reached, please wait a moment."
@@ -27,10 +31,10 @@ export function StatusOverlay({
   if (isRateLimited && isEmpty) {
     return (
       <div className="flex justify-center px-6">
-        <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+        <StatusBanner variant="warning">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
           <span className="text-sm text-amber-500">{rateLimitMessage}</span>
-        </div>
+        </StatusBanner>
       </div>
     )
   }
@@ -56,20 +60,27 @@ export function StatusOverlay({
   }
 
   const showRemainingInfo =
-    !isRateLimited && rateLimitRemaining != null && rateLimitTotal != null
+    !isRateLimited &&
+    !isError &&
+    rateLimitRemaining != null &&
+    rateLimitTotal != null
+
+  const wrapperClass = compact
+    ? "flex items-center justify-center"
+    : "flex min-h-14.5 items-center justify-center px-6 sm:min-h-10"
 
   return (
-    <div className="flex min-h-14.5 items-center justify-center px-6 sm:min-h-10">
+    <div className={wrapperClass}>
       {isRateLimited && (
-        <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+        <StatusBanner variant="warning">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
           <span className="text-sm text-amber-500">
             {rateLimitMessage} Using cached data.
           </span>
-        </div>
+        </StatusBanner>
       )}
       {isError && !isRateLimited && (
-        <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
+        <StatusBanner variant="error">
           <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
           <span className="text-sm text-destructive">
             Failed to refresh data, using cached data.
@@ -82,16 +93,37 @@ export function StatusOverlay({
           >
             <RefreshCw className="h-3 w-3" />
           </Button>
-        </div>
+        </StatusBanner>
       )}
       {showRemainingInfo && (
-        <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2">
+        <StatusBanner variant="info">
           <Info className="h-3.5 w-3.5 shrink-0 text-blue-500" />
           <span className="text-sm text-blue-500">
             API calls: {rateLimitRemaining}/{rateLimitTotal} remaining
           </span>
-        </div>
+        </StatusBanner>
       )}
     </div>
   )
+}
+
+const BANNER_BASE =
+  "flex w-fit max-w-full items-center gap-2 rounded-lg border px-3 py-2"
+
+const BANNER_VARIANTS = {
+  warning: `${BANNER_BASE} border-amber-500/30 bg-amber-500/10`,
+  error: `${BANNER_BASE} border-destructive/30 bg-destructive/10`,
+  info: `${BANNER_BASE} border-blue-500/30 bg-blue-500/10`,
+} as const
+
+type BannerVariant = keyof typeof BANNER_VARIANTS
+
+function StatusBanner({
+  variant,
+  children,
+}: {
+  variant: BannerVariant
+  children: ReactNode
+}) {
+  return <div className={BANNER_VARIANTS[variant]}>{children}</div>
 }

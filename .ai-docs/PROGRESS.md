@@ -11,7 +11,7 @@
 | 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | 🔄 In Progress | 6/7 |
 
-**Current task:** 3.7 in progress (rate limit optimization). Ready for final cleanup.
+**Current task:** Refactoring complete. Status handling consolidated, prop drilling eliminated.
 **Blockers:** None.
 
 ---
@@ -191,6 +191,22 @@
 | UI feedback | ✅ | StatusOverlay shows amber banner, ContributorsModal shows error with retry |
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 
+### Rate Limit Info Display + Primary/Secondary Detection
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Success interceptor reads headers | ✅ | Reads `x-ratelimit-remaining`, `x-ratelimit-limit`, `x-ratelimit-resource` from every response |
+| Per-resource storage | ✅ | `rateLimits` record keyed by resource ("core", "search") — no cross-contamination from polling |
+| Repos page shows search limits | ✅ | `useRepositories` reads `rateLimits.search` — shows e.g. "9/10 remaining" |
+| Contributors modal shows core limits | ✅ | `useContributors` reads `rateLimits.core` — shows e.g. "51/60 remaining" |
+| Blue info banner | ✅ | Non-error state: blue border/bg/text with `Info` icon, "API calls: X/Y remaining" |
+| Primary rate limit error | ✅ | Amber banner: "Rate limit reached, please wait a moment." |
+| Secondary rate limit error | ✅ | Amber banner: "Secondary rate limit hit, please wait." — detected via `message.includes("secondary")` |
+| `RateLimitError.isSecondary` | ✅ | Boolean on error class, hooks expose `isSecondaryRateLimit` |
+| ContributorsModal rate limit messages | ✅ | Same primary/secondary distinction with cached-data-aware suffix |
+| Unused `RATE_LIMIT_WARNING_THRESHOLD` removed | ✅ | Cleaned up from constants.ts |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+| Playwright visual verification | ✅ | Blue info banner renders correctly on repos page and contributors modal |
+
 ---
 
 ## Deviations Log
@@ -215,6 +231,9 @@
 | 2.5/3.6 | `VirtualContributorList` extracted as sub-component | Virtualizer must remount with dialog to avoid stale scroll state; sub-component unmounts with `DialogContent` |
 | 3.7 | Elaborate rate limit system removed | Earlier implementation had header tracking, dynamic polling, countdown UI, startup check, and per-resource state. Simplified to error-only interceptor + `isRateLimited` boolean in hooks. Complexity wasn't justified for unauthenticated usage. |
 | 3.7 | ETags not implemented | Confirmed via GitHub docs: conditional requests only exempt from rate limits when authenticated. Zero benefit for unauthenticated calls. |
+| rate-limit | Per-resource rate limit storage instead of global | Repos polling (search: 10/min) was overwriting contributors info (core: 60/hr) in the UI. `x-ratelimit-resource` header used to key the `rateLimits` record. |
+| rate-limit | Primary/secondary rate limit distinction | Secondary rate limits (abuse detection) can trigger even when primary remaining > 0. Differentiated via `message.includes("secondary")` for clearer user messaging. |
+| refactor | StatusOverlay accepts `QueryStatus` object instead of 7 flat props | Reduces prop drilling; hooks group status fields via shared `useRateLimitStatus` helper. ContributorsModal reuses StatusOverlay with `compact` instead of inline duplication. |
 
 ---
 
@@ -423,6 +442,52 @@ Files changed:
 - `.ai-docs/TASKS.md` — updated task 2.8 description
 - `.ai-docs/MASTER_PLAN.md` — updated task 2.8 description
 - `.ai-docs/PROGRESS.md` — added refactor entry
+
+### Rate Limit Info Display + Primary/Secondary Commit — ⬜ Pending
+```
+feat(api, ui): add rate limit info display and primary/secondary rate limit detection
+
+Success interceptor reads x-ratelimit-remaining/limit/resource headers, stores
+per-resource. Hooks expose rateLimitRemaining/Total for their resource (search
+or core). Blue info banner in StatusOverlay and ContributorsModal shows remaining
+calls. Error interceptor distinguishes primary vs secondary rate limits via
+message content. RateLimitError.isSecondary boolean exposed through hooks.
+```
+Files changed:
+- `src/api/client.ts` — `RateLimitError(isSecondary)`, `rateLimits` record, success interceptor (headers), error interceptor (primary/secondary)
+- `src/hooks/queries/useRepositories.ts` — exposes `isSecondaryRateLimit`, `rateLimitRemaining` (search), `rateLimitTotal` (search)
+- `src/hooks/queries/useContributors.ts` — exposes `isSecondaryRateLimit`, `rateLimitRemaining` (core), `rateLimitTotal` (core)
+- `src/components/StatusOverlay.tsx` — new `isSecondaryRateLimit`, `rateLimitRemaining`, `rateLimitTotal` props; blue info banner; primary/secondary messages
+- `src/components/ContributorsModal.tsx` — blue info banner (core limits), primary/secondary rate limit messages
+- `src/routes/repositories.tsx` — passes new props to StatusOverlay
+- `src/routes/developers.tsx` — passes new props to StatusOverlay
+- `src/lib/constants.ts` — removed unused `RATE_LIMIT_WARNING_THRESHOLD`
+- `.ai-docs/API_STRATEGY.md` — updated interceptor docs, rate limit info display, primary/secondary sections
+- `.ai-docs/ARCHITECTURE.md` — updated hooks descriptions, StatusOverlay spec, ContributorsModal spec, icons list
+- `.ai-docs/PROGRESS.md` — added QA report and commit log
+
+### Refactoring Commit (status consolidation) — ⬜ Pending
+```
+refactor(hooks, components): consolidate status handling and reduce prop drilling
+
+Extract QueryStatus type and shared useRateLimitStatus helper to eliminate
+duplicated rate-limit logic across hooks. StatusOverlay now accepts a single
+status object instead of 7 individual props, and ContributorsModal reuses
+StatusOverlay instead of duplicating banner rendering inline.
+```
+Files changed:
+- `src/types/github.ts` — added `QueryStatus` interface
+- `src/hooks/queries/useRateLimitStatus.ts` — **new**: shared helper extracts QueryStatus from query error + rateLimits record
+- `src/hooks/queries/useRepositories.ts` — returns `{ data, isLoading, dataUpdatedAt, refetch, status }` instead of spread query + flat fields
+- `src/hooks/queries/useContributors.ts` — returns `{ data, isLoading, isPlaceholderData, refetch, status }` instead of spread query + flat fields
+- `src/hooks/queries/useQueryTimestamp.ts` — reads `status.isError` instead of `error`
+- `src/components/StatusOverlay.tsx` — accepts `status: QueryStatus` + `compact?` prop; internal `StatusBanner` helper DRYs banner markup
+- `src/components/ContributorsModal.tsx` — reuses `StatusOverlay compact` instead of 30 lines of inline status rendering
+- `src/routes/repositories.tsx` — passes `status` object (3 props instead of 7)
+- `src/routes/developers.tsx` — passes `status` object (3 props instead of 7)
+- `.ai-docs/ARCHITECTURE.md` — updated folder structure, hooks descriptions, StatusOverlay/ContributorsModal specs, DRY checklist
+- `.ai-docs/API_STRATEGY.md` — updated shared helper and rate limit info display docs
+- `.ai-docs/PROGRESS.md` — added refactoring entry + commit log
 
 ### Phase 3 Commit — ⬜ Pending
 ```

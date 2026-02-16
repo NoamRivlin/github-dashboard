@@ -12,16 +12,7 @@ export const Route = createFileRoute("/developers")({
 })
 
 function DevelopersPage() {
-  const {
-    data,
-    isLoading,
-    isError,
-    isRateLimited,
-    isSecondaryRateLimit,
-    rateLimitRemaining,
-    rateLimitTotal,
-    refetch,
-  } = useRepositories()
+  const { data, isLoading, status, refetch } = useRepositories()
 
   const developers: Developer[] =
     data?.items.map((repo) => ({
@@ -42,13 +33,9 @@ function DevelopersPage() {
   return (
     <div className={PAGE_LAYOUT}>
       <StatusOverlay
-        isError={isError && !isRateLimited}
-        isRateLimited={isRateLimited}
-        isSecondaryRateLimit={isSecondaryRateLimit}
+        status={status}
         isEmpty={developers.length === 0}
-        onRetry={() => refetch()}
-        rateLimitRemaining={rateLimitRemaining}
-        rateLimitTotal={rateLimitTotal}
+        onRetry={refetch}
       />
 
       {developers.length > 0 && (

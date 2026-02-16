@@ -1,6 +1,6 @@
 import { useRef } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { AlertCircle, AlertTriangle, Info, Users } from "lucide-react"
+import { Users } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
+import { StatusOverlay } from "@/components/StatusOverlay"
 import { useContributors } from "@/hooks/queries/useContributors"
 import { SCROLLBAR_VERTICAL } from "@/lib/card-styles"
 import { SKELETON_COUNT, CONTRIBUTORS_PER_PAGE } from "@/lib/constants"
@@ -26,17 +26,8 @@ export function ContributorsModal({
   repoFullName,
   onClose,
 }: ContributorsModalProps) {
-  const {
-    data,
-    isLoading,
-    isError,
-    isRateLimited,
-    isSecondaryRateLimit,
-    isPlaceholderData,
-    rateLimitRemaining,
-    rateLimitTotal,
-    refetch,
-  } = useContributors(repoFullName ?? "", !!repoFullName)
+  const { data, isLoading, isPlaceholderData, status, refetch } =
+    useContributors(repoFullName ?? "", !!repoFullName)
 
   const showLoading = isLoading || isPlaceholderData
 
@@ -72,37 +63,13 @@ export function ContributorsModal({
           </div>
         )}
 
-        {!showLoading && isRateLimited && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <span className="text-sm text-amber-500">
-              {isSecondaryRateLimit
-                ? "Secondary rate limit hit, please wait."
-                : "Rate limit reached, please wait a moment."}
-              {data ? " Using cached data." : ""}
-            </span>
-          </div>
-        )}
-
-        {!showLoading && isError && !isRateLimited && (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <AlertCircle className="h-10 w-10 text-destructive" />
-            <p className="text-sm text-muted-foreground">
-              Failed to load contributors.
-            </p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {!showLoading && !isRateLimited && !isError && rateLimitRemaining != null && rateLimitTotal != null && (
-          <div className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2">
-            <Info className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-            <span className="text-sm text-blue-500">
-              API calls: {rateLimitRemaining}/{rateLimitTotal} remaining
-            </span>
-          </div>
+        {!showLoading && (
+          <StatusOverlay
+            status={status}
+            isEmpty={!data || data.length === 0}
+            onRetry={refetch}
+            compact
+          />
         )}
 
         {!showLoading && data && data.length > 0 && (
