@@ -6,14 +6,22 @@ export function useRateLimitStatus(
   error: Error | null,
   headers: Record<string, unknown> | undefined,
 ): QueryStatus {
-  const rateLimit = getRateLimit(headers)
+  const successRateLimit = getRateLimit(headers)
   const isRateLimited = error instanceof RateLimitError
+
+  const rateLimitRemaining = isRateLimited
+    ? (error.remaining ?? successRateLimit?.remaining ?? null)
+    : (successRateLimit?.remaining ?? null)
+
+  const rateLimitTotal = isRateLimited
+    ? (error.limit ?? successRateLimit?.limit ?? null)
+    : (successRateLimit?.limit ?? null)
 
   return {
     isError: error !== null,
     isRateLimited,
-    rateLimitRemaining: rateLimit?.remaining ?? null,
-    rateLimitTotal: rateLimit?.limit ?? null,
+    rateLimitRemaining,
+    rateLimitTotal,
     errorMessage: isRateLimited ? error.message : null,
   }
 }

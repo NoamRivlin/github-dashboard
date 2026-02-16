@@ -197,3 +197,99 @@ hover-tilt:hover [data-slot="card"]::before {
       -20% 16%;
   }
 }
+
+/* StatusOverlay banner animations — whole-banner breathing */
+
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes status-rotate-border {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+@keyframes status-breathe-amber {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(38 92% 50% / 0);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 16px 4px hsl(38 92% 50% / 0.15);
+    opacity: 0.85;
+  }
+}
+
+@keyframes status-breathe-blue {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(217 91% 60% / 0);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 20px 6px hsl(217 91% 60% / 0.2);
+    opacity: 1;
+  }
+}
+
+@keyframes status-breathe-red {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(0 63% 50% / 0);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 14px 3px hsl(0 63% 50% / 0.12);
+    opacity: 0.85;
+  }
+}
+
+.status-breathe-amber {
+  animation: status-breathe-amber 2.5s ease-in-out infinite;
+}
+
+.status-breathe-blue {
+  animation: status-breathe-blue 3s ease-in-out infinite;
+}
+
+.status-breathe-red {
+  animation: status-breathe-red 2.5s ease-in-out infinite;
+}
+
+.status-border-rainbow {
+  position: relative;
+}
+
+.status-border-rainbow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--border-angle),
+    #f59e0b,
+    #ef4444,
+    #ec4899,
+    #8b5cf6,
+    #3b82f6,
+    #06b6d4,
+    #10b981,
+    #eab308,
+    #f59e0b
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: status-rotate-border 3s linear infinite;
+}

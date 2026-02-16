@@ -2,11 +2,20 @@ import axios from "axios"
 
 export class RateLimitError extends Error {
   isSecondary: boolean
+  remaining: number | null
+  limit: number | null
 
-  constructor(message: string, isSecondary: boolean) {
+  constructor(
+    message: string,
+    isSecondary: boolean,
+    remaining: number | null,
+    limit: number | null,
+  ) {
     super(message)
     this.name = "RateLimitError"
     this.isSecondary = isSecondary
+    this.remaining = remaining
+    this.limit = limit
   }
 }
 

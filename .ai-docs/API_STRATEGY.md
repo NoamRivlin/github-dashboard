@@ -77,11 +77,11 @@ const apiClient = axios.create({
   baseURL: 'https://api.github.com',
   headers: { Accept: 'application/vnd.github.v3+json' },
 });
-export class RateLimitError extends Error { isSecondary: boolean }
+export class RateLimitError extends Error { isSecondary: boolean; remaining: number | null; limit: number | null }
 
 // lib/api-utils.ts — explicit helpers (no hidden side effects)
 getRateLimit(headers)       // → { remaining, limit } | null
-asRateLimitError(error)     // → RateLimitError | null (detects 403/429 + "rate limit" in message)
+asRateLimitError(error)     // → RateLimitError | null (detects 403/429 + "rate limit" in message, extracts rate limit headers from error response)
 
 // api/github.ts — returns full AxiosResponse, converts rate limit errors explicitly
 function rethrow(error: unknown): never {
@@ -152,7 +152,7 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 - **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators
 - **Focus-only polling** — background tabs make zero API requests. Polling resumes on tab focus
 - **Generous maxAge (20h)** — better to show old data with stale indicators (navbar timestamp + amber warning + overlay message) than no data at all
-- **Rate limit detection** — `asRateLimitError()` in `lib/api-utils.ts` checks 403/429 + "rate limit" in message. Called explicitly in `github.ts` try/catch via `rethrow()`. No interceptors.
+- **Rate limit detection** — `asRateLimitError()` in `lib/api-utils.ts` checks 403/429 + "rate limit" in message, extracts `x-ratelimit-remaining` / `x-ratelimit-limit` from error response headers into `RateLimitError.remaining` / `.limit`. Called explicitly in `github.ts` try/catch via `rethrow()`. No interceptors.
 - **Rate limit info display** — `getRateLimit(headers)` reads `x-ratelimit-remaining` and `x-ratelimit-limit` from response headers. Called by `useRateLimitStatus(error, headers)` — each hook passes its own response headers. Blue info banner via shared StatusOverlay.
 - **No mutable globals** — rate limit info flows from response headers through hooks. No module-level `rateLimits` record. Each query's headers are the source of truth.
 - **ETags not used** — conditional requests only exempt from rate limits when authenticated (per GitHub docs). No benefit for unauthenticated calls
@@ -164,8 +164,8 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 | Scenario | What Happens |
 |----------|--------------|
 | Normal | Fresh data every 10s, blue info banner shows remaining calls per resource |
-| 403 or 429 primary rate-limited | Query fails → `placeholderData` keeps last good data visible, amber banner: "Rate limit reached" |
-| 403 or 429 secondary rate-limited | Same behavior, amber banner: "Secondary rate limit hit" |
+| 403 or 429 primary rate-limited | Query fails → `placeholderData` keeps last good data visible, amber banner: "Rate limit reached" + remaining calls from error response headers |
+| 403 or 429 secondary rate-limited | Same behavior, amber banner: "Secondary rate limit hit" + remaining calls from error response headers |
 | Rate-limited + no cache | StatusOverlay shows friendly error |
 | Rate limit clears | Next 10s tick succeeds, UI auto-updates |
 | Tab unfocused | Polling stops completely, zero requests |
@@ -174,8 +174,10 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 | Refresh + rate-limited | Persisted data shown, navbar shows last update time, amber warning |
 
 ### Rate Limit Info Display
-- **Blue info banner** (non-error state): Shows "API calls: X/Y remaining" from `x-ratelimit-remaining` / `x-ratelimit-limit` headers
+- **Blue info banner** (non-error state): Shows "API calls: X/Y remaining" from `x-ratelimit-remaining` / `x-ratelimit-limit` headers. Animated with breathing glow.
+- **Amber rate-limit banner** (error state): Shows warning message + remaining calls count from error response headers. Both shown simultaneously in a two-line banner. Animated with breathing glow + rotating rainbow conic-gradient border.
 - Each hook reads headers from its own query response via `getRateLimit(query.data?.headers)` — no shared mutable state
+- When rate-limited, `useRateLimitStatus` prefers `RateLimitError.remaining`/`.limit` (from error response), falls back to cached successful response headers
 - Repositories page reads search resource headers, Contributors modal reads core resource headers — no cross-contamination
 
 ### Primary vs Secondary Rate Limits

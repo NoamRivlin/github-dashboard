@@ -11,7 +11,7 @@
 | 2: UI Pages | ✅ Complete | 9/9 |
 | 3: Polish & QA | 🔄 In Progress | 6/7 |
 
-**Current task:** Refactoring complete. Status handling consolidated, prop drilling eliminated.
+**Current task:** StatusOverlay enhanced with animated banners, rate-limit error shows remaining calls, layout shift fixed.
 **Blockers:** None.
 
 ---
@@ -207,6 +207,19 @@
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 | Playwright visual verification | ✅ | Blue info banner renders correctly on repos page and contributors modal |
 
+### StatusOverlay Animation + Rate Limit Info During Errors
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| RateLimitError carries remaining/limit | ✅ | `asRateLimitError()` extracts `x-ratelimit-remaining`/`x-ratelimit-limit` from error response headers |
+| useRateLimitStatus prefers error data | ✅ | Falls back to cached successful headers when error has no rate limit info |
+| Rate-limited shows both warning + calls | ✅ | Amber banner with warning message + secondary line "API calls: X/Y remaining" |
+| Layout shift fixed | ✅ | `BannerSlot` wrapper with `min-h-14` reserves space — empty slot renders when no state |
+| Amber banner animated | ✅ | Breathing glow (`status-breathe-amber`) + rotating rainbow conic-gradient border (`status-border-rainbow` via `@property --border-angle` + mask-composite) |
+| Blue info banner animated | ✅ | Prominent breathing glow (`status-breathe-blue`, opacity 0.7↔1, 20px spread) |
+| Error banner animated | ✅ | Breathing glow (`status-breathe-red`) |
+| CSS-only animations | ✅ | No framer-motion dependency, pure CSS keyframes + `@property` for conic-gradient rotation |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+
 ### Interceptor Removal + StatusOverlay Simplification
 | Scenario | Status | Notes |
 |----------|--------|-------|
@@ -252,6 +265,11 @@
 | refactor | Axios interceptors removed, replaced with explicit helpers | Interceptors hid side effects (mutable `rateLimits` global, silent error transformation). Replaced with `getRateLimit()` + `asRateLimitError()` in `lib/api-utils.ts`. API functions return full AxiosResponse; hooks read headers directly. |
 | refactor | StatusOverlay `isEmpty` and `compact` props removed | Empty states moved to pages (where they belong). StatusOverlay now only renders status banners. `StatusBanner` variant sub-component inlined as simple `Banner`. |
 | refactor | `isSecondaryRateLimit` removed from QueryStatus, `errorMessage` added | GitHub's original error message is more useful than a boolean. UI shows the actual message instead of hardcoded strings. |
+| overlay | RateLimitError enriched with remaining/limit from error response headers | Error responses include `x-ratelimit-remaining`/`x-ratelimit-limit` — captures real-time rate limit data even during errors, avoids showing stale cached numbers. |
+| overlay | StatusOverlay shows warning + remaining calls simultaneously during rate limit | Previously mutually exclusive (early return). Now amber banner has two lines: warning message + API calls count. |
+| overlay | BannerSlot wrapper with min-h-14 replaces returning null | Prevents layout shift when switching between banner states (e.g., blue info → amber rate-limit). |
+| overlay | CSS-only animations instead of framer-motion | User preference: constant animations without hover/click triggers. Breathing glow + rainbow border via CSS keyframes + `@property --border-angle`. No new dependencies. |
+| overlay | Rainbow border on amber only, breathing glow on all states | Tracer animation on blue banner was removed (user feedback: headache-inducing). Blue uses prominent breathing glow instead. |
 
 ---
 
@@ -531,6 +549,27 @@ Files changed:
 - `src/routes/developers.tsx` — removed `isEmpty`, added inline empty state
 - `.ai-docs/ARCHITECTURE.md` — updated folder structure, data flow, StatusOverlay spec, DRY checklist
 - `.ai-docs/API_STRATEGY.md` — replaced interceptor docs with explicit helper docs
+- `.ai-docs/PROGRESS.md` — added QA report, deviations, commit log
+
+### StatusOverlay Animation + Rate Limit Enhancement — ⬜ Pending
+```
+feat(ui): animate status overlay banners and show remaining calls during rate limit
+
+RateLimitError now carries remaining/limit from error response headers.
+useRateLimitStatus prefers error-sourced data, falls back to cached headers.
+StatusOverlay shows both warning message and API calls count during rate limit.
+BannerSlot wrapper with min-h-14 prevents layout shift between states.
+CSS-only animations: breathing glow on all banners, rotating rainbow
+conic-gradient border on amber rate-limit banner via @property + mask-composite.
+```
+Files changed:
+- `src/api/client.ts` — `RateLimitError` gains `remaining` and `limit` fields
+- `src/lib/api-utils.ts` — `asRateLimitError()` extracts rate limit headers from error response
+- `src/hooks/queries/useRateLimitStatus.ts` — prefers error-sourced rate limit data, falls back to cached headers
+- `src/components/StatusOverlay.tsx` — rate-limited shows both warning + calls; `BannerSlot` wrapper prevents layout shift; animation CSS classes on all banners
+- `src/index.css` — `@property --border-angle`, `status-rotate-border`, `status-breathe-amber/blue/red` keyframes, `.status-border-rainbow` rotating conic-gradient border with mask-composite
+- `.ai-docs/ARCHITECTURE.md` — updated StatusOverlay spec, rate limit flow, client.ts description
+- `.ai-docs/API_STRATEGY.md` — updated RateLimitError fields, asRateLimitError docs, rate limit info display, rate limit behavior table
 - `.ai-docs/PROGRESS.md` — added QA report, deviations, commit log
 
 ### Phase 3 Commit — ⬜ Pending

@@ -15,7 +15,7 @@ function RootLayout() {
           <Navbar />
         </div>
       </header>
-      <main className="py-6">
+      <main className="overflow-y-clip py-1">
         <Outlet />
       </main>
     </div>

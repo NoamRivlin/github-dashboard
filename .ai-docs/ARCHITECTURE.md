@@ -24,7 +24,7 @@
 ```
 src/
 ├── api/
-│   ├── client.ts              # Axios instance + RateLimitError class
+│   ├── client.ts              # Axios instance + RateLimitError class (carries remaining/limit from error response)
 │   └── github.ts              # API service functions (return AxiosResponse)
 ├── components/
 │   ├── ui/                    # shadcn primitives (auto-generated)
@@ -64,7 +64,7 @@ src/
 ## Key Patterns
 
 **Data flow:** `Component → useQuery hook → API service fn → Axios instance → GitHub API`
-**Rate limit flow:** `Response headers → hook reads headers via getRateLimit() → QueryStatus → StatusOverlay`
+**Rate limit flow:** `Response headers (success OR error) → hook reads via getRateLimit() / RateLimitError fields → QueryStatus → StatusOverlay`
 
 - ALL HTTP through `api/client.ts` — never import axios elsewhere
 - API functions return full `AxiosResponse` (hooks read `.data` and `.headers`)
@@ -153,7 +153,7 @@ System font stack (shadcn default). Page titles: `text-2xl font-bold`. Card titl
 
 **CardSkeletons:** Renders `SKELETON_COUNT` placeholder skeleton cards using `CARD_BASE_DIMENSIONS`. Each page handles its own loading state by rendering `<CardSkeletons />` in an early return, keeping loading presentation co-located with the page layout.
 
-**StatusOverlay:** Props: `status: QueryStatus, onRetry`. Does NOT handle loading or empty states (pages own those). Three mutually exclusive states rendered via early return: (1) Rate-limited → amber banner with GitHub's error message. (2) Error → destructive banner + refresh button. (3) Has rate limit info → blue info banner ("API calls: X/Y remaining"). Otherwise returns null. Internal `Banner` helper renders the centered pill layout. Shared by both pages and ContributorsModal.
+**StatusOverlay:** Props: `status: QueryStatus, onRetry`. Does NOT handle loading or empty states (pages own those). Renders inside a `BannerSlot` wrapper with fixed `min-h-14` to prevent layout shift between states. Three states: (1) Rate-limited → amber banner with GitHub's error message + remaining calls count as secondary line (both shown simultaneously); animated with breathing glow (`status-breathe-amber`) and rotating rainbow conic-gradient border (`status-border-rainbow` via `@property --border-angle` + mask-composite). (2) Error → destructive banner + refresh button; animated with breathing glow (`status-breathe-red`). (3) Has rate limit info → blue info banner ("API calls: X/Y remaining"); animated with prominent breathing glow (`status-breathe-blue`, opacity 0.7↔1). When no state applies, empty `BannerSlot` renders to reserve space. Shared by both pages and ContributorsModal.
 
 ### Icons (Lucide React)
 

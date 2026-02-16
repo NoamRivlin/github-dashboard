@@ -26,7 +26,7 @@ export function asRateLimitError(
 ): RateLimitError | null {
   if (!(error instanceof AxiosError) || !error.response) return null
 
-  const { status, data } = error.response
+  const { status, data, headers } = error.response
   const message: string = data?.message ?? ""
 
   const isRateLimited =
@@ -35,9 +35,15 @@ export function asRateLimitError(
 
   if (!isRateLimited) return null
 
+  const rateLimit = getRateLimit(headers)
   const isSecondary = message.toLowerCase().includes("secondary")
   const shortMessage = isSecondary
     ? "Secondary rate limit hit, please wait."
     : "Rate limit reached, please wait a moment."
-  return new RateLimitError(shortMessage, isSecondary)
+  return new RateLimitError(
+    shortMessage,
+    isSecondary,
+    rateLimit?.remaining ?? null,
+    rateLimit?.limit ?? null,
+  )
 }
