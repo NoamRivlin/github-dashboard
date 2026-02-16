@@ -14,8 +14,11 @@ export class RateLimitError extends Error {
   }
 }
 
-export let rateLimitRemaining: number | null = null
-export let rateLimitTotal: number | null = null
+// Keyed by GitHub's x-ratelimit-resource header ("core", "search", etc.)
+export const rateLimits: Record<
+  string,
+  { remaining: number; limit: number }
+> = {}
 
 const apiClient = axios.create({
   baseURL: "https://api.github.com",
@@ -23,11 +26,16 @@ const apiClient = axios.create({
 })
 
 apiClient.interceptors.response.use((response) => {
+  const resource = response.headers["x-ratelimit-resource"]
   const remaining = response.headers["x-ratelimit-remaining"]
   const limit = response.headers["x-ratelimit-limit"]
 
-  if (remaining != null) rateLimitRemaining = Number(remaining)
-  if (limit != null) rateLimitTotal = Number(limit)
+  if (resource && remaining != null && limit != null) {
+    rateLimits[resource] = {
+      remaining: Number(remaining),
+      limit: Number(limit),
+    }
+  }
 
   return response
 })

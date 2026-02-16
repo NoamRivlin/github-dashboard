@@ -1,10 +1,6 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { fetchRepositories } from "@/api/github"
-import {
-  RateLimitError,
-  rateLimitRemaining,
-  rateLimitTotal,
-} from "@/api/client"
+import { RateLimitError, rateLimits } from "@/api/client"
 import {
   QUERY_KEYS,
   REPOS_REFETCH_INTERVAL,
@@ -29,7 +25,7 @@ export function useRepositories() {
     ...query,
     isRateLimited: rateLimitError !== null,
     isSecondaryRateLimit: rateLimitError?.isSecondary ?? false,
-    rateLimitRemaining,
-    rateLimitTotal,
+    rateLimitRemaining: rateLimits.search?.remaining ?? null,
+    rateLimitTotal: rateLimits.search?.limit ?? null,
   }
 }

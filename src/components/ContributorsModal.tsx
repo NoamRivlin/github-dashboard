@@ -1,6 +1,6 @@
 import { useRef } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { AlertCircle, AlertTriangle, Users } from "lucide-react"
+import { AlertCircle, AlertTriangle, Info, Users } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,8 @@ export function ContributorsModal({
     isRateLimited,
     isSecondaryRateLimit,
     isPlaceholderData,
+    rateLimitRemaining,
+    rateLimitTotal,
     refetch,
   } = useContributors(repoFullName ?? "", !!repoFullName)
 
@@ -91,6 +93,15 @@ export function ContributorsModal({
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
+          </div>
+        )}
+
+        {!showLoading && !isRateLimited && !isError && rateLimitRemaining != null && rateLimitTotal != null && (
+          <div className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2">
+            <Info className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+            <span className="text-sm text-blue-500">
+              API calls: {rateLimitRemaining}/{rateLimitTotal} remaining
+            </span>
           </div>
         )}
 
