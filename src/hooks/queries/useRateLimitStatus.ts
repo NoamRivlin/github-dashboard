@@ -1,18 +1,19 @@
-import { RateLimitError, rateLimits } from "@/api/client"
+import { RateLimitError } from "@/api/client"
+import { getRateLimit } from "@/lib/api-utils"
 import type { QueryStatus } from "@/types/github"
 
 export function useRateLimitStatus(
   error: Error | null,
-  resource: string,
+  headers: Record<string, unknown> | undefined,
 ): QueryStatus {
-  const rateLimitError =
-    error instanceof RateLimitError ? error : null
+  const rateLimit = getRateLimit(headers)
+  const isRateLimited = error instanceof RateLimitError
 
   return {
     isError: error !== null,
-    isRateLimited: rateLimitError !== null,
-    isSecondaryRateLimit: rateLimitError?.isSecondary ?? false,
-    rateLimitRemaining: rateLimits[resource]?.remaining ?? null,
-    rateLimitTotal: rateLimits[resource]?.limit ?? null,
+    isRateLimited,
+    rateLimitRemaining: rateLimit?.remaining ?? null,
+    rateLimitTotal: rateLimit?.limit ?? null,
+    errorMessage: isRateLimited ? error.message : null,
   }
 }

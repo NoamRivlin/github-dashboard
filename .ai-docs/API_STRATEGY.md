@@ -69,40 +69,31 @@ interface Developer {
 
 ---
 
-## Axios Client
+## API Layer
 
 ```ts
-// api/client.ts
+// api/client.ts — just the Axios instance + error class, NO interceptors
 const apiClient = axios.create({
   baseURL: 'https://api.github.com',
   headers: { Accept: 'application/vnd.github.v3+json' },
 });
+export class RateLimitError extends Error { isSecondary: boolean }
 
-// Success interceptor: read rate limit headers, store per resource
-// GitHub sends x-ratelimit-resource ("core", "search", etc.) on every response
-apiClient.interceptors.response.use((response) => {
-  const resource = response.headers['x-ratelimit-resource']
-  const remaining = response.headers['x-ratelimit-remaining']
-  const limit = response.headers['x-ratelimit-limit']
-  if (resource && remaining != null && limit != null) {
-    rateLimits[resource] = { remaining: Number(remaining), limit: Number(limit) }
-  }
-  return response
-});
+// lib/api-utils.ts — explicit helpers (no hidden side effects)
+getRateLimit(headers)       // → { remaining, limit } | null
+asRateLimitError(error)     // → RateLimitError | null (detects 403/429 + "rate limit" in message)
 
-// Error interceptor: detect rate limit responses (primary + secondary)
-apiClient.interceptors.response.use(undefined, (error) => {
-  const status = error.response?.status
-  const message = error.response?.data?.message ?? ''
-  const isRateLimited =
-    (status === 403 || status === 429) &&
-    message.toLowerCase().includes('rate limit')
-  if (isRateLimited) {
-    const isSecondary = message.toLowerCase().includes('secondary')
-    throw new RateLimitError(isSecondary)
-  }
-  throw error
-});
+// api/github.ts — returns full AxiosResponse, converts rate limit errors explicitly
+function rethrow(error: unknown): never {
+  throw asRateLimitError(error) ?? error
+}
+export async function fetchRepositories(signal?) {
+  try { return await apiClient.get(...) }
+  catch (error) { rethrow(error) }
+}
+
+// hooks read headers directly — no mutable globals
+const status = useRateLimitStatus(query.error, query.data?.headers)
 ```
 
 ### ETag / Conditional Requests
@@ -161,9 +152,9 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 - **localStorage persistence** — entire query cache (repos + contributors) persisted. On refresh/new tab, data loads instantly; stale queries refetch in background. If refetch fails (rate limit/network), user sees last good data with warning indicators
 - **Focus-only polling** — background tabs make zero API requests. Polling resumes on tab focus
 - **Generous maxAge (20h)** — better to show old data with stale indicators (navbar timestamp + amber warning + overlay message) than no data at all
-- **Rate limit detection** — error interceptor checks both 403 and 429 status + "rate limit" in message body. Throws `RateLimitError(isSecondary)` which hooks expose via `isRateLimited` and `isSecondaryRateLimit` booleans
-- **Rate limit info display** — success interceptor reads `x-ratelimit-remaining`, `x-ratelimit-limit`, `x-ratelimit-resource` headers. Stored in `rateLimits` record keyed by resource. `useRateLimitStatus` reads the appropriate resource. Blue info banner via shared StatusOverlay (pages and ContributorsModal)
-- **isRateLimited derived in hooks** — shared `useRateLimitStatus(error, resource)` helper extracts `QueryStatus` (isError, isRateLimited, isSecondaryRateLimit, rateLimitRemaining, rateLimitTotal) from query error + `rateLimits` record. Used by both `useRepositories` ("search") and `useContributors` ("core"). Pages never import `RateLimitError` directly
+- **Rate limit detection** — `asRateLimitError()` in `lib/api-utils.ts` checks 403/429 + "rate limit" in message. Called explicitly in `github.ts` try/catch via `rethrow()`. No interceptors.
+- **Rate limit info display** — `getRateLimit(headers)` reads `x-ratelimit-remaining` and `x-ratelimit-limit` from response headers. Called by `useRateLimitStatus(error, headers)` — each hook passes its own response headers. Blue info banner via shared StatusOverlay.
+- **No mutable globals** — rate limit info flows from response headers through hooks. No module-level `rateLimits` record. Each query's headers are the source of truth.
 - **ETags not used** — conditional requests only exempt from rate limits when authenticated (per GitHub docs). No benefit for unauthenticated calls
 
 ---
@@ -184,14 +175,13 @@ persistOptions: { maxAge: 20 * 60 * 60 * 1000 }  // 20h — prefer stale data ov
 
 ### Rate Limit Info Display
 - **Blue info banner** (non-error state): Shows "API calls: X/Y remaining" from `x-ratelimit-remaining` / `x-ratelimit-limit` headers
-- Stored per resource type (`rateLimits` record keyed by `x-ratelimit-resource` header: "core", "search", etc.)
-- Repositories page reads `rateLimits.search`, Contributors modal reads `rateLimits.core` — no cross-contamination from polling
-- Module-level storage, read at render time (queries trigger re-renders on settle, so values are always fresh)
+- Each hook reads headers from its own query response via `getRateLimit(query.data?.headers)` — no shared mutable state
+- Repositories page reads search resource headers, Contributors modal reads core resource headers — no cross-contamination
 
 ### Primary vs Secondary Rate Limits
 - **Primary:** `message.includes("rate limit")` but NOT `message.includes("secondary")` — standard per-resource rate limit
 - **Secondary:** `message.includes("secondary")` — GitHub's abuse detection (by day/hour), can trigger even when primary remaining > 0
-- `RateLimitError.isSecondary` boolean distinguishes the two; hooks expose `isSecondaryRateLimit`
+- `RateLimitError.isSecondary` boolean distinguishes the two; GitHub's original error message is passed through to the UI via `QueryStatus.errorMessage`
 
 ### Rate Limit Budgets (Unauthenticated)
 | Resource | Limit | Used By |

@@ -207,6 +207,21 @@
 | TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
 | Playwright visual verification | ✅ | Blue info banner renders correctly on repos page and contributors modal |
 
+### Interceptor Removal + StatusOverlay Simplification
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| Interceptors removed | ✅ | No interceptors in client.ts, explicit helpers in api-utils.ts |
+| API functions return AxiosResponse | ✅ | Hooks read `.data` and `.headers` |
+| Rate limit info from headers | ✅ | `getRateLimit(query.data?.headers)` — no mutable globals |
+| Rate limit error detection | ✅ | `asRateLimitError()` called in `github.ts` try/catch |
+| StatusOverlay simplified | ✅ | 2 props (`status`, `onRetry`), 3 states (rate-limited/error/info), returns null otherwise |
+| Empty state in pages | ✅ | Pages render "No data available." locally |
+| Repos page + banner | ✅ | "API calls: 8/10 remaining" blue banner renders |
+| Contributors modal + banner | ✅ | "API calls: 52/60 remaining" blue banner renders |
+| Developers page | ✅ | Cards render, StatusOverlay shows correctly |
+| TypeScript | ✅ | Zero errors (`npx tsc --noEmit`) |
+| Playwright visual verification | ✅ | All three views verified |
+
 ---
 
 ## Deviations Log
@@ -234,6 +249,9 @@
 | rate-limit | Per-resource rate limit storage instead of global | Repos polling (search: 10/min) was overwriting contributors info (core: 60/hr) in the UI. `x-ratelimit-resource` header used to key the `rateLimits` record. |
 | rate-limit | Primary/secondary rate limit distinction | Secondary rate limits (abuse detection) can trigger even when primary remaining > 0. Differentiated via `message.includes("secondary")` for clearer user messaging. |
 | refactor | StatusOverlay accepts `QueryStatus` object instead of 7 flat props | Reduces prop drilling; hooks group status fields via shared `useRateLimitStatus` helper. ContributorsModal reuses StatusOverlay with `compact` instead of inline duplication. |
+| refactor | Axios interceptors removed, replaced with explicit helpers | Interceptors hid side effects (mutable `rateLimits` global, silent error transformation). Replaced with `getRateLimit()` + `asRateLimitError()` in `lib/api-utils.ts`. API functions return full AxiosResponse; hooks read headers directly. |
+| refactor | StatusOverlay `isEmpty` and `compact` props removed | Empty states moved to pages (where they belong). StatusOverlay now only renders status banners. `StatusBanner` variant sub-component inlined as simple `Banner`. |
+| refactor | `isSecondaryRateLimit` removed from QueryStatus, `errorMessage` added | GitHub's original error message is more useful than a boolean. UI shows the actual message instead of hardcoded strings. |
 
 ---
 
@@ -488,6 +506,32 @@ Files changed:
 - `.ai-docs/ARCHITECTURE.md` — updated folder structure, hooks descriptions, StatusOverlay/ContributorsModal specs, DRY checklist
 - `.ai-docs/API_STRATEGY.md` — updated shared helper and rate limit info display docs
 - `.ai-docs/PROGRESS.md` — added refactoring entry + commit log
+
+### Interceptor Removal + StatusOverlay Simplification — ⬜ Pending
+```
+refactor(api, components): remove axios interceptors and simplify StatusOverlay
+
+Replace hidden interceptor side-effects with explicit helper functions in lib/api-utils.ts.
+Rate limit info now flows through response headers directly to hooks — no mutable globals.
+Simplify StatusOverlay by removing isEmpty/compact props and inlining state branching.
+Pages handle their own empty states. QueryStatus type simplified (removed isSecondaryRateLimit,
+added errorMessage).
+```
+Files changed:
+- `src/api/client.ts` — removed interceptors and `rateLimits` record, kept Axios instance + `RateLimitError`
+- `src/lib/api-utils.ts` — **new**: `getRateLimit(headers)`, `asRateLimitError(error)` helpers
+- `src/api/github.ts` — returns full `AxiosResponse`, explicit `rethrow()` for rate limit errors
+- `src/hooks/queries/useRateLimitStatus.ts` — accepts `(error, headers)` instead of `(error, resource)` + global
+- `src/hooks/queries/useRepositories.ts` — passes `query.data?.headers`, reads `query.data?.data`
+- `src/hooks/queries/useContributors.ts` — passes `query.data?.headers`, reads `query.data?.data`
+- `src/types/github.ts` — `QueryStatus`: removed `isSecondaryRateLimit`, added `errorMessage`
+- `src/components/StatusOverlay.tsx` — 2 props (`status`, `onRetry`), 3 states, `Banner` helper
+- `src/components/ContributorsModal.tsx` — removed `compact`/`isEmpty`, added `isOpen` variable
+- `src/routes/repositories.tsx` — removed `isEmpty`, added inline empty state
+- `src/routes/developers.tsx` — removed `isEmpty`, added inline empty state
+- `.ai-docs/ARCHITECTURE.md` — updated folder structure, data flow, StatusOverlay spec, DRY checklist
+- `.ai-docs/API_STRATEGY.md` — replaced interceptor docs with explicit helper docs
+- `.ai-docs/PROGRESS.md` — added QA report, deviations, commit log
 
 ### Phase 3 Commit — ⬜ Pending
 ```

@@ -18,10 +18,10 @@ export function useRepositories() {
     retry: false,
   })
 
-  const status = useRateLimitStatus(query.error, "search")
+  const status = useRateLimitStatus(query.error, query.data?.headers)
 
   return {
-    data: query.data,
+    data: query.data?.data,
     isLoading: query.isLoading,
     dataUpdatedAt: query.dataUpdatedAt,
     refetch: query.refetch,

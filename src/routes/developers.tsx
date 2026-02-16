@@ -32,11 +32,13 @@ function DevelopersPage() {
 
   return (
     <div className={PAGE_LAYOUT}>
-      <StatusOverlay
-        status={status}
-        isEmpty={developers.length === 0}
-        onRetry={refetch}
-      />
+      <StatusOverlay status={status} onRetry={refetch} />
+
+      {developers.length === 0 && !status.isError && (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          No data available.
+        </p>
+      )}
 
       {developers.length > 0 && (
         <HorizontalScroll>

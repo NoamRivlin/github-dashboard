@@ -18,10 +18,10 @@ export function useContributors(repoFullName: string, enabled: boolean) {
     retry: false,
   })
 
-  const status = useRateLimitStatus(query.error, "core")
+  const status = useRateLimitStatus(query.error, query.data?.headers)
 
   return {
-    data: query.data,
+    data: query.data?.data,
     isLoading: query.isLoading,
     isPlaceholderData: query.isPlaceholderData,
     refetch: query.refetch,

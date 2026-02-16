@@ -36,7 +36,7 @@ export interface Developer {
 export interface QueryStatus {
   isError: boolean
   isRateLimited: boolean
-  isSecondaryRateLimit: boolean
   rateLimitRemaining: number | null
   rateLimitTotal: number | null
+  errorMessage: string | null
 }

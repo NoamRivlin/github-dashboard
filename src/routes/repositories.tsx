@@ -28,11 +28,16 @@ function RepositoriesPage() {
 
   return (
     <div className={PAGE_LAYOUT}>
-      <StatusOverlay
-        status={status}
-        isEmpty={repos.length === 0}
-        onRetry={refetch}
-      />
+      <StatusOverlay status={status} onRetry={refetch} />
+
+      {repos.length === 0 && !status.isError && (
+        <>
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            No data available.
+          </p>
+          <CardSkeletons />
+        </>
+      )}
 
       {repos.length > 0 && (
         <HorizontalScroll>

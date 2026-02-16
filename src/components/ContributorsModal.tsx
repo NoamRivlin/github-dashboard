@@ -26,13 +26,14 @@ export function ContributorsModal({
   repoFullName,
   onClose,
 }: ContributorsModalProps) {
+  const isOpen = repoFullName !== null
   const { data, isLoading, isPlaceholderData, status, refetch } =
-    useContributors(repoFullName ?? "", !!repoFullName)
+    useContributors(repoFullName ?? "", isOpen)
 
   const showLoading = isLoading || isPlaceholderData
 
   return (
-    <Dialog open={!!repoFullName} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -64,12 +65,7 @@ export function ContributorsModal({
         )}
 
         {!showLoading && (
-          <StatusOverlay
-            status={status}
-            isEmpty={!data || data.length === 0}
-            onRetry={refetch}
-            compact
-          />
+          <StatusOverlay status={status} onRetry={refetch} />
         )}
 
         {!showLoading && data && data.length > 0 && (
